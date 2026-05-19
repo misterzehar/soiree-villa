@@ -1,4 +1,4 @@
-# Build Kit — Plateforme d'expériences sociales animées
+# Soirée Villa — Plateforme d'expériences sociales animées
 
 Ce dossier est **le seul que Claude Code doit lire** pour construire l'app. Tout le reste (les 50 docx du dossier source `app_organisé/`) est de la matière première — la synthèse opérationnelle est ici.
 
