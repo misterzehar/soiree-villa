@@ -68,6 +68,19 @@ Tous les écrans sont conçus pour le mobile en priorité (vertical, swipe-first
 - Strings affichés à l'utilisateur, docs, commentaires utilisateur : **français**
 - Commentaires techniques internes : indifférent, mais privilégie l'anglais pour la cohérence
 
+### Règle 6 — Commit + push automatique à chaque fin d'étape
+
+À chaque fois que tu termines un **livrable de la roadmap** (cf. docs/08_ROADMAP.md) ou une **étape majeure** (nouvelle page, nouvelle table BDD, nouvelle feature), tu fais automatiquement :
+
+1. `git add` des fichiers modifiés
+2. `git commit` avec un message clair au format :
+   - `feat: [Semaine X] — [titre du livrable]` pour les nouvelles features
+   - `fix: [problème résolu]` pour les correctifs
+   - `docs: [docs modifiées]` pour les changements de docs
+3. `git push origin main` immédiatement
+
+Tu ne demandes PAS de validation préalable — c'est le comportement attendu. Si le code n'est pas prêt à être poussé (cassé, tests qui plantent), tu corriges AVANT le commit, pas après.
+
 ---
 
 ## 📚 Plan de lecture obligatoire
