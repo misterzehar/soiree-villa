@@ -101,3 +101,16 @@ create index if not exists registrations_email_idx      on registrations(partici
 
 alter table registrations enable row level security;
 -- Aucune lecture publique — accès via service_role uniquement (webhooks, admin)
+
+-- ─── Fonctions utilitaires ────────────────────────────────────────────────────
+
+-- Incrément atomique de capacity_current (évite les race conditions webhook)
+create or replace function increment_experience_capacity(exp_id uuid)
+  returns void
+  language sql
+  security definer
+as $$
+  update experiences
+  set capacity_current = capacity_current + 1
+  where id = exp_id;
+$$;
