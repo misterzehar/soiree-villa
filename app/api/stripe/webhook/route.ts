@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
         tierLabel: tierLabels[reg.tier_id] ?? reg.tier_id,
         amountPaidCents: reg.amount_paid_cents ?? session.amount_total ?? 0,
         experienceId: experience_id,
+        stripeSessionId: session.id,
       })
     }
   }

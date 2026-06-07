@@ -11,6 +11,7 @@ type ConfirmationEmailData = {
   tierLabel: string
   amountPaidCents: number
   experienceId: string
+  stripeSessionId: string
 }
 
 function formatDate(dateStr: string): string {
@@ -24,11 +25,11 @@ function formatDate(dateStr: string): string {
 export async function sendConfirmationEmail(data: ConfirmationEmailData) {
   const {
     to, firstName, experienceTitle, experienceDate,
-    venueName, tierLabel, amountPaidCents, experienceId,
+    venueName, tierLabel, amountPaidCents, experienceId, stripeSessionId,
   } = data
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
-  const confirmationUrl = `${baseUrl}/experiences/${experienceId}/confirmation`
+  const confirmationUrl = `${baseUrl}/experiences/${experienceId}/confirmation?session_id=${stripeSessionId}`
   const charteUrl = `${baseUrl}/charte`
   const priceFmt = `${Math.round(amountPaidCents / 100)} €`
   const dateFmt = formatDate(experienceDate)
