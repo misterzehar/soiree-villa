@@ -5,6 +5,8 @@ import { createServerSupabase } from '@/lib/supabase'
 import { FOURNISSEUR_CATEGORY_LABELS } from '@/types/fournisseur'
 import type { Fournisseur } from '@/types/fournisseur'
 
+export const dynamic = 'force-dynamic'
+
 const AXIS_LABELS: Record<string, { low: string; high: string; icon: string }> = {
   energy:    { low: 'Calme',       high: 'Dynamique',   icon: '⚡' },
   structure: { low: 'Libre',       high: 'Structuré',   icon: '🗂' },

@@ -3,6 +3,8 @@ import { createServerSupabase } from '@/lib/supabase'
 import { FOURNISSEUR_CATEGORY_LABELS } from '@/types/fournisseur'
 import type { Fournisseur, FournisseurCategory } from '@/types/fournisseur'
 
+export const dynamic = 'force-dynamic'
+
 export default async function FournisseursPage() {
   const supabase = createServerSupabase()
   const { data } = await supabase

@@ -4,6 +4,8 @@ import { ArrowLeft, MapPin, Users, ExternalLink } from 'lucide-react'
 import { createServerSupabase } from '@/lib/supabase'
 import type { Lieu } from '@/types/lieu'
 
+export const dynamic = 'force-dynamic'
+
 const AXIS_LABELS: Record<string, { low: string; high: string; icon: string }> = {
   energy:    { low: 'Calme',       high: 'Dynamique',   icon: '⚡' },
   structure: { low: 'Libre',       high: 'Structuré',   icon: '🗂' },

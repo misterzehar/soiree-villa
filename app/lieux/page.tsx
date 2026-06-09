@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase'
 import type { Lieu } from '@/types/lieu'
 
+export const dynamic = 'force-dynamic'
+
 const LIEU_TYPE_LABELS: Record<string, string> = {
   salle: 'Salle', rooftop: 'Rooftop', plein_air: 'Plein air',
   bar: 'Bar', restaurant: 'Restaurant', atelier: 'Atelier', autre: 'Autre',
