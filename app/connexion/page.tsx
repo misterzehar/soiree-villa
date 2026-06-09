@@ -1,12 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Loader2, Mail } from 'lucide-react'
 import { sendMagicLink } from '@/app/auth/actions'
 
 export default function ConnexionPage() {
+  return (
+    <Suspense fallback={<ConnexionFallback />}>
+      <ConnexionForm />
+    </Suspense>
+  )
+}
+
+function ConnexionFallback() {
+  return (
+    <main className="min-h-screen bg-bg flex flex-col items-center justify-center px-4 py-16">
+      <div className="w-full max-w-sm">
+        <div className="block text-center font-display font-bold text-xl text-text mb-8">
+          Soirée Villa
+        </div>
+        <div className="bg-surface rounded-2xl shadow-sm p-8 flex items-center justify-center">
+          <Loader2 className="w-5 h-5 animate-spin text-text-muted" />
+        </div>
+      </div>
+    </main>
+  )
+}
+
+function ConnexionForm() {
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') ?? '/compte'
   const hasError = searchParams.get('error') === 'lien_invalide'
