@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react'
 import { Loader2, ChevronDown } from 'lucide-react'
 import { PROFILES } from '@/constants/profiles'
+import { VenuePicker } from './venue-picker'
+import type { Lieu } from '@/types/lieu'
 
 // ─── Type partagé entre create et edit ────────────────────────────────────────
 
@@ -11,6 +13,7 @@ export type ExperienceInitialData = {
   description: string
   venueName: string
   venueAmbiance: string
+  venueId?: string | null
   date: string             // format datetime-local : YYYY-MM-DDTHH:mm
   durationMinutes: number
   menuSocial: {
@@ -27,6 +30,7 @@ export type ExperienceInitialData = {
 type Props = {
   action: (fd: FormData) => Promise<{ error: string } | void>
   initialData?: Partial<ExperienceInitialData>
+  availableLieux?: Lieu[]
   submitLabel?: string
 }
 
@@ -134,7 +138,7 @@ function MenuActSection({
 
 // ─── Composant principal ───────────────────────────────────────────────────────
 
-export function ExperienceForm({ action, initialData, submitLabel = 'Soumettre ma soirée' }: Props) {
+export function ExperienceForm({ action, initialData, availableLieux, submitLabel = 'Soumettre ma soirée' }: Props) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
 
@@ -172,11 +176,19 @@ export function ExperienceForm({ action, initialData, submitLabel = 'Soumettre m
       {/* 2 — Lieu */}
       <section className="bg-surface rounded-2xl p-5 shadow-sm flex flex-col gap-4">
         <SectionTitle>2. Lieu</SectionTitle>
-        <InputField
-          label="Nom du lieu" name="venueName"
-          placeholder="Ex : Rooftop Le Negresco"
-          required defaultValue={d.venueName}
-        />
+        {availableLieux && availableLieux.length > 0 ? (
+          <VenuePicker
+            lieux={availableLieux}
+            defaultVenueId={d.venueId}
+            defaultVenueName={d.venueName}
+          />
+        ) : (
+          <InputField
+            label="Nom du lieu" name="venueName"
+            placeholder="Ex : Rooftop Le Negresco"
+            required defaultValue={d.venueName}
+          />
+        )}
         <InputField
           label="Ambiance / style du lieu" name="venueAmbiance"
           placeholder="Ex : rooftop avec vue mer, lumières tamisées"

@@ -8,22 +8,32 @@ type Props = {
   center?: React.ReactNode
 }
 
+type ActorProfile = 'organisateur' | 'lieu' | 'fournisseur' | null
+
+async function getActorProfile(userId: string): Promise<ActorProfile> {
+  const supabase = createServerSupabase()
+  const [{ data: orga }, { data: lieu }, { data: fourn }] = await Promise.all([
+    supabase.from('organizers').select('id').eq('user_id', userId).single(),
+    supabase.from('lieux').select('id').eq('claimed_by_user_id', userId).single(),
+    supabase.from('fournisseurs').select('id').eq('claimed_by_user_id', userId).single(),
+  ])
+  if (orga) return 'organisateur'
+  if (lieu) return 'lieu'
+  if (fourn) return 'fournisseur'
+  return null
+}
+
+const ACTOR_LINKS: Record<Exclude<ActorProfile, null>, { href: string; label: string }> = {
+  organisateur: { href: '/organisateur',  label: 'Espace orga'        },
+  lieu:         { href: '/lieu',          label: 'Espace lieu'         },
+  fournisseur:  { href: '/fournisseur',   label: 'Espace fournisseur'  },
+}
+
 export async function SiteHeader({ variant = 'light', center }: Props) {
   const authClient = await createSupabaseServerClient()
-  const {
-    data: { user },
-  } = await authClient.auth.getUser()
+  const { data: { user } } = await authClient.auth.getUser()
 
-  let hasOrganizerProfile = false
-  if (user) {
-    const supabase = createServerSupabase()
-    const { data } = await supabase
-      .from('organizers')
-      .select('id')
-      .eq('user_id', user.id)
-      .single()
-    hasOrganizerProfile = !!data
-  }
+  const actor = user ? await getActorProfile(user.id) : null
 
   const isDark = variant === 'dark'
   const logoClass = isDark ? 'text-white' : 'text-text'
@@ -45,16 +55,16 @@ export async function SiteHeader({ variant = 'light', center }: Props) {
             <Link href="/compte" className={linkClass}>
               Mon compte
             </Link>
-            {hasOrganizerProfile ? (
+            {actor ? (
               <Link
-                href="/organisateur"
+                href={ACTOR_LINKS[actor].href}
                 className={`text-sm font-semibold px-3 py-1.5 rounded-full transition-colors ${
                   isDark
                     ? 'bg-white/15 text-white hover:bg-white/25'
                     : 'bg-primary/10 text-primary hover:bg-primary/20'
                 }`}
               >
-                Espace orga
+                {ACTOR_LINKS[actor].label}
               </Link>
             ) : (
               <Link

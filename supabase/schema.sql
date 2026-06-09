@@ -285,3 +285,93 @@ create policy "registrations_update_organizer"
       where o.user_id = auth.uid()
     )
   );
+
+-- ─── Phase 3 — Lieux et fournisseurs ──────────────────────────────────────────
+
+create table if not exists lieux (
+  id                  uuid primary key default gen_random_uuid(),
+  name                text not null,
+  slug                text not null unique,
+  address             text,
+  city                text not null default 'Nice',
+  capacity            integer,
+  ambiance            text,
+  lieu_type           text not null default 'salle',  -- 'salle'|'rooftop'|'plein_air'|'bar'|'restaurant'|'atelier'|'autre'
+  photo_url           text,
+  axes_scores         jsonb not null default '{}',    -- { energy, structure, depth, sociality } ∈ {-1, 0, 1}
+  website_url         text,
+  is_approved         boolean not null default false,
+  claimed_by_user_id  uuid references auth.users(id),
+  created_at          timestamptz default now()
+);
+
+create index if not exists lieux_slug_idx     on lieux(slug);
+create index if not exists lieux_approved_idx on lieux(is_approved);
+create index if not exists lieux_city_idx     on lieux(city);
+
+alter table lieux enable row level security;
+
+-- Lecture publique des lieux approuvés
+create policy "lieux_select_approved"
+  on lieux for select to anon
+  using (is_approved = true);
+
+-- Un utilisateur connecté peut lire sa propre fiche (même non approuvée)
+create policy "lieux_select_own"
+  on lieux for select to authenticated
+  using (claimed_by_user_id = auth.uid());
+
+-- Un utilisateur connecté peut créer sa fiche
+create policy "lieux_insert_auth"
+  on lieux for insert to authenticated
+  with check (claimed_by_user_id = auth.uid());
+
+-- Un utilisateur connecté peut modifier sa propre fiche
+create policy "lieux_update_own"
+  on lieux for update to authenticated
+  using (claimed_by_user_id = auth.uid());
+
+
+create table if not exists fournisseurs (
+  id                  uuid primary key default gen_random_uuid(),
+  name                text not null,
+  slug                text not null unique,
+  category            text not null check (category in ('traiteur','dj_musique','deco','animation')),
+  city                text not null default 'Nice',
+  description         text,
+  photo_url           text,
+  axes_scores         jsonb not null default '{}',
+  price_range         text,
+  website_url         text,
+  is_approved         boolean not null default false,
+  claimed_by_user_id  uuid references auth.users(id),
+  created_at          timestamptz default now()
+);
+
+create index if not exists fournisseurs_slug_idx     on fournisseurs(slug);
+create index if not exists fournisseurs_approved_idx on fournisseurs(is_approved);
+create index if not exists fournisseurs_category_idx on fournisseurs(category);
+
+alter table fournisseurs enable row level security;
+
+create policy "fournisseurs_select_approved"
+  on fournisseurs for select to anon
+  using (is_approved = true);
+
+create policy "fournisseurs_select_own"
+  on fournisseurs for select to authenticated
+  using (claimed_by_user_id = auth.uid());
+
+create policy "fournisseurs_insert_auth"
+  on fournisseurs for insert to authenticated
+  with check (claimed_by_user_id = auth.uid());
+
+create policy "fournisseurs_update_own"
+  on fournisseurs for update to authenticated
+  using (claimed_by_user_id = auth.uid());
+
+-- FK venue_id nullable sur experiences (garde venue_name texte comme fallback)
+alter table experiences
+  add column if not exists venue_id uuid references lieux(id);
+
+create index if not exists experiences_venue_idx on experiences(venue_id);

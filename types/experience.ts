@@ -35,6 +35,7 @@ export type Experience = {
   organizer_name: string
   organizer_bio: string | null
   organizer_id: string | null
+  venue_id: string | null
   status: string
   created_at: string
 }

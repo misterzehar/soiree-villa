@@ -27,8 +27,15 @@ export async function createExperience(
   // Infos générales
   const title = formData.get('title')?.toString().trim() ?? ''
   const description = formData.get('description')?.toString().trim() ?? ''
-  const venueName = formData.get('venueName')?.toString().trim() ?? ''
+  const venueId = formData.get('venueId')?.toString().trim() || null
+  let venueName = formData.get('venueName')?.toString().trim() ?? ''
   const venueAmbiance = formData.get('venueAmbiance')?.toString().trim() ?? ''
+
+  // Si venue_id fourni et pas de nom manuel → récupère le nom depuis la BDD
+  if (venueId && !venueName) {
+    const { data: lieuRow } = await supabase.from('lieux').select('name').eq('id', venueId).single()
+    if (lieuRow) venueName = lieuRow.name
+  }
   const date = formData.get('date')?.toString() ?? ''
   const durationMinutes = parseInt(formData.get('durationMinutes')?.toString() ?? '120', 10)
 
@@ -61,7 +68,7 @@ export async function createExperience(
 
   // Validations
   if (title.length < 3) return { error: 'Titre trop court (3 caractères minimum).' }
-  if (!venueName) return { error: 'Le nom du lieu est requis.' }
+  if (!venueName && !venueId) return { error: 'Sélectionnez ou saisissez un lieu.' }
   if (!date) return { error: 'La date est requise.' }
   if (earlyQty + standardQty + lastQty < 1) return { error: 'Au moins 1 place est requise.' }
   if (compatibleProfiles.length === 0)
@@ -107,8 +114,9 @@ export async function createExperience(
       title,
       description,
       menu_social: menuSocial,
-      venue_name: venueName,
+      venue_name: venueName || 'À confirmer',
       venue_ambiance: venueAmbiance || 'À confirmer',
+      venue_id: venueId,
       date,
       duration_minutes: isNaN(durationMinutes) ? 120 : durationMinutes,
       pricing_tiers: pricingTiers,

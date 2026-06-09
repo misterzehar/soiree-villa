@@ -6,6 +6,7 @@ import { ExperienceForm } from '../../../_components/experience-form'
 import { updateExperience } from '../actions'
 import type { Experience } from '@/types/experience'
 import type { ExperienceInitialData } from '../../../_components/experience-form'
+import type { Lieu } from '@/types/lieu'
 
 function toDatetimeLocal(isoString: string): string {
   const d = new Date(isoString)
@@ -34,6 +35,7 @@ function experienceToInitialData(exp: Experience): ExperienceInitialData {
     lastQty:           tierMap.last?.quantity   ?? 0,
     lastPriceCents:    tierMap.last?.price_cents ?? 0,
     compatibleProfiles: exp.compatible_profiles,
+    venueId: exp.venue_id ?? null,
   }
 }
 
@@ -60,19 +62,17 @@ export default async function EditSoireePage({
 
   if (!organizer) redirect('/organisateur/inscription')
 
-  const { data: expData } = await supabase
-    .from('experiences')
-    .select('*')
-    .eq('id', id)
-    .eq('organizer_id', organizer.id)
-    .single()
+  const [{ data: expData }, { data: lieuxData }] = await Promise.all([
+    supabase.from('experiences').select('*').eq('id', id).eq('organizer_id', organizer.id).single(),
+    supabase.from('lieux').select('*').eq('is_approved', true).order('name'),
+  ])
 
   if (!expData) notFound()
 
   const experience = expData as Experience
+  const availableLieux = (lieuxData ?? []) as Lieu[]
   const initialData = experienceToInitialData(experience)
 
-  // Bind l'ID à l'action serveur (pattern Next.js App Router)
   const boundUpdate = updateExperience.bind(null, id)
 
   return (
@@ -102,6 +102,7 @@ export default async function EditSoireePage({
         <ExperienceForm
           action={boundUpdate}
           initialData={initialData}
+          availableLieux={availableLieux}
           submitLabel="Enregistrer les modifications"
         />
 
