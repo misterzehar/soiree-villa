@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
 import { stripe } from '@/lib/stripe'
 import { getCurrentTierInfo } from '@/lib/pricing'
 import type { Experience } from '@/types/experience'
@@ -46,9 +46,12 @@ export async function createCheckoutSession(input: RegisterInput): Promise<Regis
 
   const { tier } = tierInfo
 
-  // ── Profil utilisateur depuis cookie ─────────────────────────────────────
+  // ── Profil utilisateur (cookie) + user_id si connecté ────────────────────
   const cookieStore = await cookies()
   const profileId = (cookieStore.get('sv_profile')?.value ?? 'inconnu') as ProfileId
+
+  const authClient = await createSupabaseServerClient()
+  const { data: { user } } = await authClient.auth.getUser()
 
   // ── Création Registration pending ────────────────────────────────────────
   const { data: registration, error: regError } = await supabase
@@ -63,6 +66,7 @@ export async function createCheckoutSession(input: RegisterInput): Promise<Regis
       charter_accepted_at: new Date().toISOString(),
       payment_status: 'pending',
       amount_paid_cents: tier.price_cents,
+      ...(user ? { user_id: user.id } : {}),
     })
     .select('id')
     .single()

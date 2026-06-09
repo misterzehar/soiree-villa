@@ -1,7 +1,10 @@
-# 02 — Périmètre MVP (FIGÉ)
+# 02 — Périmètre MVP (ARCHIVÉ — remplacé le 2026-06-09)
 
-> **Ce document fait foi.** Toute feature non listée ici est **hors scope** et doit être refusée.
-> Les ajouts vont dans `docs/v1-backlog.md` (à créer si besoin).
+> ⚠️ **CE DOCUMENT EST ARCHIVÉ.** Il décrit le périmètre du MVP **déjà livré** sur soireevilla.fr (onboarding 15 questions, catalogue, inscription+paiement Stripe, charte participant, 5 expériences pilotes).
+>
+> **Le périmètre en vigueur est désormais `02_SCOPE.md`** (V1 complète). J a décidé le 2026-06-09 de construire toutes les fonctionnalités V1 avant de figer le design.
+>
+> Ce fichier est conservé pour traçabilité — il liste ce qui a été construit en MVP et permet de comprendre le point de départ.
 
 ## 🎯 Objectif unique du MVP
 

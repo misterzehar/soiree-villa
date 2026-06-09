@@ -102,6 +102,85 @@ create index if not exists registrations_email_idx      on registrations(partici
 alter table registrations enable row level security;
 -- Aucune lecture publique — accès via service_role uniquement (webhooks, admin)
 
+-- ─── Phase 1 — Auth + comptes persistants ────────────────────────────────────
+
+-- Table profiles : étend auth.users avec le rôle et le profil social
+create table if not exists profiles (
+  id              uuid primary key references auth.users(id) on delete cascade,
+  role            text not null default 'participant', -- 'participant' | 'organisateur' | 'lieu' | 'fournisseur'
+  display_name    text,
+  social_profile_id text,                             -- copie du sv_profile cookie à la création
+  avatar_url      text,
+  created_at      timestamptz default now(),
+  updated_at      timestamptz default now()
+);
+
+alter table profiles enable row level security;
+
+-- Chaque utilisateur peut lire et modifier uniquement son propre profil
+create policy "profiles_select_own"
+  on profiles for select
+  to authenticated
+  using (id = auth.uid());
+
+create policy "profiles_update_own"
+  on profiles for update
+  to authenticated
+  using (id = auth.uid());
+
+-- Trigger : crée automatiquement un profil public à la création d'un compte auth
+create or replace function handle_new_user()
+  returns trigger
+  language plpgsql
+  security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, role, display_name)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'role', 'participant'),
+    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1))
+  );
+  return new;
+end;
+$$;
+
+create or replace trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure handle_new_user();
+
+-- Trigger : backfill user_id sur les registrations quand un compte est créé
+-- avec un email qui correspond à des inscriptions existantes
+create or replace function backfill_registration_user_id()
+  returns trigger
+  language plpgsql
+  security definer set search_path = public
+as $$
+begin
+  update public.registrations
+  set user_id = new.id
+  where participant_email = new.email
+    and user_id is null;
+  return new;
+end;
+$$;
+
+create or replace trigger on_auth_user_backfill_registrations
+  after insert on auth.users
+  for each row execute procedure backfill_registration_user_id();
+
+-- Colonne user_id sur registrations (nullable — les inscriptions MVP existantes restent valides)
+alter table registrations
+  add column if not exists user_id uuid references auth.users(id);
+
+create index if not exists registrations_user_id_idx on registrations(user_id);
+
+-- Un utilisateur authentifié peut lire ses propres inscriptions
+create policy "registrations_select_own"
+  on registrations for select
+  to authenticated
+  using (user_id = auth.uid());
+
 -- ─── Fonctions utilitaires ────────────────────────────────────────────────────
 
 -- Incrément atomique de capacity_current (évite les race conditions webhook)

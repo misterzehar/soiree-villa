@@ -12,12 +12,14 @@ function InputField({
   name,
   type = 'text',
   autoComplete,
+  defaultValue,
   error,
 }: {
   label: string
   name: string
   type?: string
   autoComplete?: string
+  defaultValue?: string
   error?: string
 }) {
   return (
@@ -31,7 +33,8 @@ function InputField({
         type={type}
         autoComplete={autoComplete}
         required
-        className={[
+        defaultValue={defaultValue}
+      className={[
           'w-full border rounded-xl px-4 py-3 text-sm text-text bg-surface',
           'focus:outline-none focus:ring-2 focus:ring-primary/40',
           'placeholder:text-text-muted transition-colors',
@@ -46,9 +49,11 @@ function InputField({
 export function RegisterForm({
   experience,
   tierInfo,
+  prefill = {},
 }: {
   experience: Experience
   tierInfo: CurrentTierInfo & { isSoldOut: false }
+  prefill?: { firstName?: string; lastName?: string; email?: string }
 }) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -99,12 +104,14 @@ export function RegisterForm({
           label="Prénom"
           name="firstName"
           autoComplete="given-name"
+          defaultValue={prefill.firstName}
           error={fieldErrors.firstName}
         />
         <InputField
           label="Nom"
           name="lastName"
           autoComplete="family-name"
+          defaultValue={prefill.lastName}
           error={fieldErrors.lastName}
         />
         <InputField
@@ -112,6 +119,7 @@ export function RegisterForm({
           name="email"
           type="email"
           autoComplete="email"
+          defaultValue={prefill.email}
           error={fieldErrors.email}
         />
       </div>

@@ -44,15 +44,15 @@ C'est la **grammaire narrative** des expériences. Ces 3 verbes correspondent au
 
 Ces règles sont **immutables**. Si l'utilisateur demande quelque chose qui les viole, refuse poliment et explique pourquoi.
 
-### Règle 1 — Périmètre MVP figé
-Tu ne construis que ce qui est listé dans `docs/02_MVP_SCOPE.md`. Toute autre feature est **hors scope** et doit aller dans `docs/v1-backlog.md` (à créer si l'utilisateur insiste).
+### Règle 1 — Périmètre V1 complète (révisée le 2026-06-09)
 
-**MVP = 3 fonctions seulement** :
-- Onboarding "Tu préfères ?" (15 questions, 4 axes, attribution d'1 profil parmi 6)
-- Catalogue d'expériences (manuel, géré par l'admin)
-- Inscription + paiement Stripe Checkout (avec **3 paliers tarifaires** early/standard/last — voir `docs/09_PRICING.md`)
+> ⚠️ L'ancien périmètre MVP est archivé dans `docs/02_MVP_SCOPE.md`. Le périmètre en vigueur est `docs/02_SCOPE.md` (V1 complète).
 
-**Pas dans le MVP** : matching automatique, dashboard organisateur, IA, recommandations, chat, badges, gamification, multi-langue, mobile native. **Aucun des 5 modules V1** (messagerie organisateur, appels d'offres, devis combinatoires, back-office, marketplace prestataires) — détails dans `docs/10_V1_MODULES.md`. Aussi : pas d'import de vidéos Insta/TikTok pour le MVP.
+Tu construis ce qui est listé dans `docs/02_SCOPE.md` sections A à G : les 4 acteurs exposés (participant, organisateur, lieu, fournisseur), les 5 modules (messagerie, appels d'offres, devis combinatoires, back-office OPRAH, marketplace prestataires), le matching automatique, les comptes persistants, le multi-ville, la Tier List, la gamification.
+
+**Tu ne refuses que** les 3 features listées dans la section "❌ HORS périmètre V1" de `02_SCOPE.md` : app mobile native, IA générative, multi-langue. Ces 3-là vont dans `v1-backlog.md` pour une V1.5 éventuelle.
+
+Le **design final et la réécriture des textes** se font en dernier (Phase 12 de `08_ROADMAP.md`) — une fois toutes les autres phases en place. Ne pas commencer un gros chantier de design tant que les phases 1 à 11 ne sont pas closes.
 
 ### Règle 2 — Pas de couleur en dur
 Toutes les couleurs viennent du **Design System** (`docs/06_DESIGN_SYSTEM.md`). Aucune valeur hex en dur dans le code (sauf dans le fichier de tokens).
@@ -67,19 +67,6 @@ Tous les écrans sont conçus pour le mobile en priorité (vertical, swipe-first
 - Variables, fonctions, fichiers, composants : **anglais** (`UserProfile`, `getUserMatch()`, `experience-card.tsx`)
 - Strings affichés à l'utilisateur, docs, commentaires utilisateur : **français**
 - Commentaires techniques internes : indifférent, mais privilégie l'anglais pour la cohérence
-
-### Règle 6 — Commit + push automatique à chaque fin d'étape
-
-À chaque fois que tu termines un **livrable de la roadmap** (cf. docs/08_ROADMAP.md) ou une **étape majeure** (nouvelle page, nouvelle table BDD, nouvelle feature), tu fais automatiquement :
-
-1. `git add` des fichiers modifiés
-2. `git commit` avec un message clair au format :
-   - `feat: [Semaine X] — [titre du livrable]` pour les nouvelles features
-   - `fix: [problème résolu]` pour les correctifs
-   - `docs: [docs modifiées]` pour les changements de docs
-3. `git push origin main` immédiatement
-
-Tu ne demandes PAS de validation préalable — c'est le comportement attendu. Si le code n'est pas prêt à être poussé (cassé, tests qui plantent), tu corriges AVANT le commit, pas après.
 
 ---
 

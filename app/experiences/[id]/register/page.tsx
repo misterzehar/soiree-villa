@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
 import { getCurrentTierInfo, formatPrice } from '@/lib/pricing'
 import { getGradientForExperience } from '@/lib/profile-colors'
 import type { Experience } from '@/types/experience'
@@ -22,19 +22,39 @@ export default async function RegisterPage({
 }) {
   const { id } = await params
 
-  const supabase = createServerSupabase()
-  const { data } = await supabase
-    .from('experiences')
-    .select('*')
-    .eq('id', id)
-    .eq('status', 'published')
-    .single()
+  // Charge l'expérience + la session utilisateur en parallèle
+  const [expResult, authClient] = await Promise.all([
+    createServerSupabase()
+      .from('experiences')
+      .select('*')
+      .eq('id', id)
+      .eq('status', 'published')
+      .single(),
+    createSupabaseServerClient(),
+  ])
 
-  if (!data) notFound()
+  if (!expResult.data) notFound()
 
-  const experience = data as Experience
+  const experience = expResult.data as Experience
   const tierInfo = getCurrentTierInfo(experience)
   const gradient = getGradientForExperience(experience.compatible_profiles)
+
+  // Pré-remplissage si l'utilisateur est connecté
+  const { data: { user } } = await authClient.auth.getUser()
+  let prefill: { firstName?: string; lastName?: string; email?: string } = {}
+  if (user) {
+    const { data: profile } = await createServerSupabase()
+      .from('profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .single()
+    const parts = (profile?.display_name ?? '').split(' ')
+    prefill = {
+      firstName: parts[0] ?? '',
+      lastName: parts.slice(1).join(' ') ?? '',
+      email: user.email ?? '',
+    }
+  }
 
   if (tierInfo.isSoldOut) {
     return (
@@ -116,7 +136,7 @@ export default async function RegisterPage({
         )}
 
         {/* Form */}
-        <RegisterForm experience={experience} tierInfo={{ ...tierInfo, isSoldOut: false }} />
+        <RegisterForm experience={experience} tierInfo={{ ...tierInfo, isSoldOut: false }} prefill={prefill} />
 
       </div>
     </main>
