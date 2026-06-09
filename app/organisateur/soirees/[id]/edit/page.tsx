@@ -2,10 +2,10 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
-import { ExperienceForm } from '../../_components/experience-form'
+import { ExperienceForm } from '../../../_components/experience-form'
 import { updateExperience } from '../actions'
 import type { Experience } from '@/types/experience'
-import type { ExperienceInitialData } from '../../_components/experience-form'
+import type { ExperienceInitialData } from '../../../_components/experience-form'
 
 function toDatetimeLocal(isoString: string): string {
   const d = new Date(isoString)
