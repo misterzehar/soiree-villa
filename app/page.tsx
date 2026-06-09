@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Sparkles, User, Calendar } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/waitlist-form";
+import { SiteHeader } from "@/components/site-header";
 
 // ─── Données statiques ───────────────────────────────────────────────────────
 
@@ -88,10 +89,8 @@ export default function HomePage() {
           className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_70%_60%,rgba(255,122,89,0.2),transparent)]"
         />
 
-        <nav className="relative z-10 flex items-center justify-between px-6 pt-6 md:px-12 md:pt-8">
-          <span className="font-display font-bold text-lg text-white tracking-tight">
-            Soirée Villa
-          </span>
+        <nav className="relative z-10 px-6 pt-6 md:px-12 md:pt-8">
+          <SiteHeader variant="dark" />
         </nav>
 
         <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-6 pb-20 text-center md:px-12">

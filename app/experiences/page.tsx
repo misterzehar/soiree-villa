@@ -6,6 +6,7 @@ import type { ProfileId } from '@/constants/profiles'
 import type { Experience } from '@/types/experience'
 import { ExperiencesList } from '@/components/experiences/experiences-list'
 import { EmptyState } from '@/components/experiences/empty-state'
+import { SiteHeader } from '@/components/site-header'
 
 export const revalidate = 60
 
@@ -40,20 +41,19 @@ export default async function ExperiencesPage() {
       <div className="max-w-md mx-auto px-4 pt-8 pb-24">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-1">
-            <Link href="/" className="font-display font-bold text-lg text-text">
-              Soirée Villa
-            </Link>
-            {profile && (
-              <Link
-                href="/onboarding/result"
-                className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium px-3 py-1.5 rounded-full transition-colors"
-              >
-                <span>{profile.emoji}</span>
-                <span>{profile.name}</span>
-              </Link>
-            )}
-          </div>
+          <SiteHeader
+            center={profile ? (
+              <div className="flex justify-end">
+                <Link
+                  href="/onboarding/result"
+                  className="flex items-center gap-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium px-3 py-1.5 rounded-full transition-colors"
+                >
+                  <span>{profile.emoji}</span>
+                  <span className="hidden sm:inline">{profile.name}</span>
+                </Link>
+              </div>
+            ) : undefined}
+          />
 
           {profile ? (
             <>

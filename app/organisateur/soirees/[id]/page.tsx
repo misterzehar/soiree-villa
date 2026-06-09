@@ -1,9 +1,11 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Users, TrendingUp, CheckCircle, Circle } from 'lucide-react'
+import { ArrowLeft, Users, TrendingUp, CheckCircle, Circle, Pencil } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
 import { formatPrice } from '@/lib/pricing'
+import { depublishExperience, deleteExperience } from './actions'
+import { DeleteConfirmButton } from '../../_components/delete-confirm-button'
 import type { Experience, PricingTier } from '@/types/experience'
 
 type RegRow = {
@@ -30,12 +32,22 @@ const TIER_LABELS: Record<string, string> = {
   early: 'Early bird', standard: 'Standard', last: 'Last chance',
 }
 
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  draft:     { label: 'En attente de validation', color: 'bg-warning/15 text-warning' },
+  published: { label: 'Publiée',                  color: 'bg-success/15 text-success' },
+  sold_out:  { label: 'Complet',                  color: 'bg-primary/10 text-primary' },
+  past:      { label: 'Passée',                   color: 'bg-border text-text-muted'  },
+}
+
 export default async function ManageSoireePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ updated?: string }>
 }) {
-  const { id } = await params
+  const [{ id }, sp] = await Promise.all([params, searchParams])
+  const justUpdated = sp.updated === '1'
 
   const authClient = await createSupabaseServerClient()
   const {
@@ -53,7 +65,6 @@ export default async function ManageSoireePage({
 
   if (!organizer) redirect('/organisateur/inscription')
 
-  // Vérifie que l'expérience appartient à cet organisateur
   const { data: expData } = await supabase
     .from('experiences')
     .select('*')
@@ -65,7 +76,6 @@ export default async function ManageSoireePage({
 
   const experience = expData as Experience
 
-  // Charge les inscriptions payées
   const { data: regData } = await supabase
     .from('registrations')
     .select(
@@ -77,11 +87,11 @@ export default async function ManageSoireePage({
 
   const registrations = (regData ?? []) as RegRow[]
 
-  // KPIs
   const totalBrut = registrations.reduce((s, r) => s + (r.amount_paid_cents ?? 0), 0)
   const commission = Math.round(totalBrut * Number(organizer.commission_rate))
   const totalNet = totalBrut - commission
   const checkedInCount = registrations.filter(r => r.checked_in).length
+  const canDelete = registrations.length === 0
 
   // Server action inline pour check-in
   async function handleCheckIn(formData: FormData) {
@@ -89,7 +99,6 @@ export default async function ManageSoireePage({
     const regId = formData.get('regId')?.toString()
     const currentCheckedIn = formData.get('checkedIn') === 'true'
     if (!regId) return
-
     const supa = createServerSupabase()
     await supa
       .from('registrations')
@@ -98,16 +107,22 @@ export default async function ManageSoireePage({
         checked_in_at: !currentCheckedIn ? new Date().toISOString() : null,
       })
       .eq('id', regId)
-
     revalidatePath(`/organisateur/soirees/${id}`)
   }
 
-  const statusColors: Record<string, string> = {
-    draft:     'bg-warning/15 text-warning',
-    published: 'bg-success/15 text-success',
-    sold_out:  'bg-primary/10 text-primary',
-    past:      'bg-border text-text-muted',
+  // Server action inline pour dépublication
+  async function handleDepublish() {
+    'use server'
+    await depublishExperience(id)
   }
+
+  // Server action inline pour suppression
+  async function handleDelete() {
+    'use server'
+    await deleteExperience(id)
+  }
+
+  const statusMeta = STATUS_LABELS[experience.status] ?? STATUS_LABELS.draft
 
   return (
     <main className="min-h-screen bg-bg">
@@ -121,29 +136,63 @@ export default async function ManageSoireePage({
           Dashboard
         </Link>
 
+        {/* Bannière succès après save */}
+        {justUpdated && (
+          <div className="mb-4 bg-success/10 border border-success/25 rounded-xl px-4 py-3 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-success shrink-0" />
+            <p className="text-success text-sm font-medium">Soirée mise à jour avec succès.</p>
+          </div>
+        )}
+
         {/* Header soirée */}
         <div className="bg-surface rounded-2xl p-5 shadow-sm mb-5">
           <div className="flex items-start justify-between gap-3 mb-2">
-            <h1 className="font-display font-bold text-lg text-text leading-snug">
+            <h1 className="font-display font-bold text-lg text-text leading-snug flex-1">
               {experience.title}
             </h1>
-            <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${statusColors[experience.status] ?? statusColors.draft}`}>
-              {experience.status === 'draft' ? 'En attente' :
-               experience.status === 'published' ? 'Publiée' :
-               experience.status === 'sold_out' ? 'Complet' : 'Passée'}
+            <Link
+              href={`/organisateur/soirees/${id}/edit`}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-colors shrink-0"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Modifier
+            </Link>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusMeta.color}`}>
+              {statusMeta.label}
             </span>
           </div>
-          <p className="text-text-muted text-sm capitalize mb-1">
-            {formatDate(experience.date)}
-          </p>
+          <p className="text-text-muted text-sm capitalize mb-1">{formatDate(experience.date)}</p>
           <p className="text-text-muted text-xs">{experience.venue_name}</p>
 
           {experience.status === 'draft' && (
             <p className="mt-3 text-warning text-xs bg-warning/5 border border-warning/20 rounded-xl px-3 py-2 leading-relaxed">
-              ⏳ Cette soirée est en attente de validation par l&apos;équipe Soirée Villa.
-              Tu seras notifié par email dès publication.
+              ⏳ En attente de validation — tu seras notifié par email dès publication.
             </p>
           )}
+
+          {/* Actions dépublier / supprimer */}
+          <div className="mt-4 pt-4 border-t border-border flex gap-2 flex-wrap">
+            {experience.status === 'published' && (
+              <form action={handleDepublish}>
+                <button
+                  type="submit"
+                  className="text-xs px-3 py-1.5 border border-warning/40 text-warning rounded-lg hover:bg-warning/5 transition-colors"
+                >
+                  Dépublier
+                </button>
+              </form>
+            )}
+            {canDelete && experience.status !== 'past' && (
+              <DeleteConfirmButton action={handleDelete} />
+            )}
+            {!canDelete && (
+              <p className="text-text-muted text-xs self-center">
+                Suppression impossible — des inscriptions payées existent.
+              </p>
+            )}
+          </div>
         </div>
 
         {/* KPIs */}
@@ -159,8 +208,12 @@ export default async function ManageSoireePage({
             </p>
             <div className="mt-2 h-1.5 bg-border rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary rounded-full transition-all"
-                style={{ width: `${experience.capacity_max > 0 ? Math.min(100, (registrations.length / experience.capacity_max) * 100) : 0}%` }}
+                className="h-full bg-primary rounded-full"
+                style={{
+                  width: `${experience.capacity_max > 0
+                    ? Math.min(100, (registrations.length / experience.capacity_max) * 100)
+                    : 0}%`,
+                }}
               />
             </div>
           </div>
@@ -186,7 +239,7 @@ export default async function ManageSoireePage({
               <span className="text-sm text-text font-medium">Check-in</span>
             </div>
             <span className="text-sm text-text-muted">
-              {checkedInCount} / {registrations.length}
+              {checkedInCount}&nbsp;/&nbsp;{registrations.length}
             </span>
           </div>
         )}
@@ -194,14 +247,12 @@ export default async function ManageSoireePage({
         {/* Liste des inscrits */}
         <section>
           <h2 className="font-display font-semibold text-base text-text mb-3">
-            Liste des participants ({registrations.length})
+            Participants ({registrations.length})
           </h2>
 
           {registrations.length === 0 ? (
             <div className="bg-surface rounded-2xl p-6 text-center">
-              <p className="text-text-muted text-sm">
-                Aucune inscription payée pour le moment.
-              </p>
+              <p className="text-text-muted text-sm">Aucune inscription payée pour le moment.</p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -210,9 +261,7 @@ export default async function ManageSoireePage({
                   key={reg.id}
                   className={`bg-surface rounded-2xl px-4 py-3 flex items-center gap-3 transition-opacity ${reg.checked_in ? 'opacity-60' : ''}`}
                 >
-                  <span className="text-text-muted text-xs w-5 shrink-0 text-center">
-                    {i + 1}
-                  </span>
+                  <span className="text-text-muted text-xs w-5 shrink-0 text-center">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-text text-sm">
                       {reg.participant_first_name} {reg.participant_last_name}
@@ -236,8 +285,7 @@ export default async function ManageSoireePage({
                     >
                       {reg.checked_in
                         ? <CheckCircle className="w-5 h-5 text-success" />
-                        : <Circle className="w-5 h-5 text-border hover:text-text-muted" />
-                      }
+                        : <Circle className="w-5 h-5 text-border hover:text-text-muted" />}
                     </button>
                   </form>
                 </div>
