@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase'
+import { publishExperience } from './actions'
 
 type RegistrationRow = {
   id: string
@@ -10,9 +11,20 @@ type RegistrationRow = {
   tier_id: string
   payment_status: string
   amount_paid_cents: number | null
+  platform_fee_cents: number | null
   stripe_session_id: string | null
   created_at: string
   experiences: { title: string; date: string } | null
+}
+
+type DraftExperience = {
+  id: string
+  title: string
+  date: string
+  venue_name: string
+  organizer_name: string
+  capacity_max: number
+  created_at: string
 }
 
 async function getRegistrations(status: string | null): Promise<RegistrationRow[]> {
@@ -28,6 +40,16 @@ async function getRegistrations(status: string | null): Promise<RegistrationRow[
 
   const { data } = await query
   return (data ?? []) as RegistrationRow[]
+}
+
+async function getDraftExperiences(): Promise<DraftExperience[]> {
+  const supabase = createServerSupabase()
+  const { data } = await supabase
+    .from('experiences')
+    .select('id, title, date, venue_name, organizer_name, capacity_max, created_at')
+    .eq('status', 'draft')
+    .order('created_at', { ascending: false })
+  return (data ?? []) as DraftExperience[]
 }
 
 function formatDate(dateStr: string): string {
@@ -53,7 +75,10 @@ export default async function AdminPage({
   }
 
   const currentStatus = status === 'all' ? null : 'paid'
-  const registrations = await getRegistrations(currentStatus)
+  const [registrations, draftExperiences] = await Promise.all([
+    getRegistrations(currentStatus),
+    getDraftExperiences(),
+  ])
 
   const totalRevenue = registrations
     .filter(r => r.payment_status === 'paid' && r.amount_paid_cents)
@@ -64,9 +89,10 @@ export default async function AdminPage({
   return (
     <main className="min-h-screen bg-bg p-6">
       <div className="max-w-6xl mx-auto">
+
         <div className="flex items-start justify-between mb-2">
           <h1 className="font-display font-bold text-2xl text-text">
-            Admin — Inscriptions
+            Admin — Soirée Villa
           </h1>
           <p className="text-text-muted text-sm mt-1">
             {registrations.length} inscription{registrations.length > 1 ? 's' : ''}
@@ -75,96 +101,145 @@ export default async function AdminPage({
           </p>
         </div>
 
-        {/* Status filter */}
-        <div className="flex gap-2 mb-6">
-          <Link
-            href={`${baseUrl}&status=paid`}
-            className={[
-              'text-sm px-3 py-1.5 rounded-full transition-colors',
-              currentStatus === 'paid'
-                ? 'bg-primary text-white'
-                : 'bg-surface border border-border text-text-muted hover:text-text',
-            ].join(' ')}
-          >
-            Payées seulement
-          </Link>
-          <Link
-            href={`${baseUrl}&status=all`}
-            className={[
-              'text-sm px-3 py-1.5 rounded-full transition-colors',
-              currentStatus === null
-                ? 'bg-primary text-white'
-                : 'bg-surface border border-border text-text-muted hover:text-text',
-            ].join(' ')}
-          >
-            Toutes
-          </Link>
-        </div>
-
-        {registrations.length === 0 ? (
-          <p className="text-text-muted text-sm">Aucune inscription.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-border text-left text-text-muted bg-bg">
-                  <th className="py-3 px-4 font-medium">Expérience</th>
-                  <th className="py-3 px-4 font-medium">Date exp.</th>
-                  <th className="py-3 px-4 font-medium">Participant</th>
-                  <th className="py-3 px-4 font-medium">Email</th>
-                  <th className="py-3 px-4 font-medium">Profil</th>
-                  <th className="py-3 px-4 font-medium">Palier</th>
-                  <th className="py-3 px-4 font-medium">Statut</th>
-                  <th className="py-3 px-4 font-medium">Montant</th>
-                  <th className="py-3 px-4 font-medium">Session Stripe</th>
-                  <th className="py-3 px-4 font-medium">Inscrit le</th>
-                </tr>
-              </thead>
-              <tbody>
-                {registrations.map(r => (
-                  <tr key={r.id} className="border-b border-border/50 hover:bg-bg/50 transition-colors">
-                    <td className="py-2.5 px-4 font-medium text-text max-w-[160px] truncate">
-                      {r.experiences?.title ?? '—'}
-                    </td>
-                    <td className="py-2.5 px-4 text-text-muted whitespace-nowrap text-xs">
-                      {r.experiences?.date ? formatDate(r.experiences.date) : '—'}
-                    </td>
-                    <td className="py-2.5 px-4 text-text whitespace-nowrap">
-                      {r.participant_first_name} {r.participant_last_name}
-                    </td>
-                    <td className="py-2.5 px-4 text-text-muted text-xs">{r.participant_email}</td>
-                    <td className="py-2.5 px-4 text-text-muted text-xs">{r.participant_profile_id}</td>
-                    <td className="py-2.5 px-4 text-text-muted text-xs">{r.tier_id}</td>
-                    <td className="py-2.5 px-4">
-                      <span className={[
-                        'text-xs font-semibold px-2 py-0.5 rounded-full',
-                        r.payment_status === 'paid'     ? 'bg-success/15 text-success' :
-                        r.payment_status === 'failed'   ? 'bg-error/10 text-error'    :
-                        r.payment_status === 'refunded' ? 'bg-warning/15 text-warning' :
-                                                          'bg-border text-text-muted',
-                      ].join(' ')}>
-                        {r.payment_status}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-4 text-text whitespace-nowrap">
-                      {r.amount_paid_cents != null
-                        ? `${Math.round(r.amount_paid_cents / 100)} €`
-                        : '—'}
-                    </td>
-                    <td className="py-2.5 px-4 text-text-muted text-xs font-mono">
-                      {r.stripe_session_id
-                        ? `${r.stripe_session_id.slice(0, 18)}…`
-                        : '—'}
-                    </td>
-                    <td className="py-2.5 px-4 text-text-muted text-xs whitespace-nowrap">
-                      {formatDate(r.created_at)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* ── Soirées en attente de validation ──────────────────────────── */}
+        {draftExperiences.length > 0 && (
+          <section className="mb-8">
+            <h2 className="font-display font-semibold text-lg text-text mb-3">
+              ⏳ Soirées en attente de validation ({draftExperiences.length})
+            </h2>
+            <div className="flex flex-col gap-3">
+              {draftExperiences.map(exp => (
+                <div
+                  key={exp.id}
+                  className="bg-surface border border-warning/30 rounded-xl p-4 flex items-start justify-between gap-4"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-text text-sm">{exp.title}</p>
+                    <p className="text-text-muted text-xs mt-0.5">
+                      {exp.organizer_name} · {exp.venue_name} · {formatDate(exp.date)}
+                    </p>
+                    <p className="text-text-muted text-xs">{exp.capacity_max} places max · Soumis le {formatDate(exp.created_at)}</p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Link
+                      href={`/experiences/${exp.id}`}
+                      className="text-xs px-3 py-1.5 border border-border rounded-lg text-text-muted hover:text-text transition-colors"
+                    >
+                      Voir
+                    </Link>
+                    <form action={publishExperience}>
+                      <input type="hidden" name="adminToken" value={token} />
+                      <input type="hidden" name="experienceId" value={exp.id} />
+                      <button
+                        type="submit"
+                        className="text-xs px-3 py-1.5 bg-success text-white rounded-lg hover:bg-success/90 transition-colors font-semibold"
+                      >
+                        ✓ Publier
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
+
+        {/* ── Inscriptions ──────────────────────────────────────────────── */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display font-semibold text-lg text-text">Inscriptions</h2>
+            <div className="flex gap-2">
+              <Link
+                href={`${baseUrl}&status=paid`}
+                className={[
+                  'text-sm px-3 py-1.5 rounded-full transition-colors',
+                  currentStatus === 'paid'
+                    ? 'bg-primary text-white'
+                    : 'bg-surface border border-border text-text-muted hover:text-text',
+                ].join(' ')}
+              >
+                Payées
+              </Link>
+              <Link
+                href={`${baseUrl}&status=all`}
+                className={[
+                  'text-sm px-3 py-1.5 rounded-full transition-colors',
+                  currentStatus === null
+                    ? 'bg-primary text-white'
+                    : 'bg-surface border border-border text-text-muted hover:text-text',
+                ].join(' ')}
+              >
+                Toutes
+              </Link>
+            </div>
+          </div>
+
+          {registrations.length === 0 ? (
+            <p className="text-text-muted text-sm">Aucune inscription.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-border text-left text-text-muted bg-bg">
+                    <th className="py-3 px-4 font-medium">Expérience</th>
+                    <th className="py-3 px-4 font-medium">Date exp.</th>
+                    <th className="py-3 px-4 font-medium">Participant</th>
+                    <th className="py-3 px-4 font-medium">Email</th>
+                    <th className="py-3 px-4 font-medium">Profil</th>
+                    <th className="py-3 px-4 font-medium">Palier</th>
+                    <th className="py-3 px-4 font-medium">Statut</th>
+                    <th className="py-3 px-4 font-medium">Montant</th>
+                    <th className="py-3 px-4 font-medium">Commission</th>
+                    <th className="py-3 px-4 font-medium">Stripe</th>
+                    <th className="py-3 px-4 font-medium">Inscrit le</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {registrations.map(r => (
+                    <tr key={r.id} className="border-b border-border/50 hover:bg-bg/50 transition-colors">
+                      <td className="py-2.5 px-4 font-medium text-text max-w-[160px] truncate">
+                        {r.experiences?.title ?? '—'}
+                      </td>
+                      <td className="py-2.5 px-4 text-text-muted whitespace-nowrap text-xs">
+                        {r.experiences?.date ? formatDate(r.experiences.date) : '—'}
+                      </td>
+                      <td className="py-2.5 px-4 text-text whitespace-nowrap">
+                        {r.participant_first_name} {r.participant_last_name}
+                      </td>
+                      <td className="py-2.5 px-4 text-text-muted text-xs">{r.participant_email}</td>
+                      <td className="py-2.5 px-4 text-text-muted text-xs">{r.participant_profile_id}</td>
+                      <td className="py-2.5 px-4 text-text-muted text-xs">{r.tier_id}</td>
+                      <td className="py-2.5 px-4">
+                        <span className={[
+                          'text-xs font-semibold px-2 py-0.5 rounded-full',
+                          r.payment_status === 'paid'     ? 'bg-success/15 text-success' :
+                          r.payment_status === 'failed'   ? 'bg-error/10 text-error'    :
+                          r.payment_status === 'refunded' ? 'bg-warning/15 text-warning' :
+                                                            'bg-border text-text-muted',
+                        ].join(' ')}>
+                          {r.payment_status}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-4 text-text whitespace-nowrap">
+                        {r.amount_paid_cents != null ? `${Math.round(r.amount_paid_cents / 100)} €` : '—'}
+                      </td>
+                      <td className="py-2.5 px-4 text-text-muted text-xs whitespace-nowrap">
+                        {r.platform_fee_cents != null ? `${Math.round(r.platform_fee_cents / 100)} €` : '—'}
+                      </td>
+                      <td className="py-2.5 px-4 text-text-muted text-xs font-mono">
+                        {r.stripe_session_id ? `${r.stripe_session_id.slice(0, 18)}…` : '—'}
+                      </td>
+                      <td className="py-2.5 px-4 text-text-muted text-xs whitespace-nowrap">
+                        {formatDate(r.created_at)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
       </div>
     </main>
   )

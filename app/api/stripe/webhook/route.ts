@@ -30,11 +30,15 @@ export async function POST(req: NextRequest) {
     const supabase = createServerSupabase()
 
     // ── Mise à jour de la Registration ───────────────────────────────────
+    const amountPaid = session.amount_total ?? 0
+    const platformFeeCents = Math.round(amountPaid * 0.15)
+
     await supabase
       .from('registrations')
       .update({
         payment_status: 'paid',
-        amount_paid_cents: session.amount_total,
+        amount_paid_cents: amountPaid,
+        platform_fee_cents: platformFeeCents,
       })
       .eq('id', registration_id)
 

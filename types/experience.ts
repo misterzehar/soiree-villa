@@ -34,6 +34,7 @@ export type Experience = {
   compatible_profiles: string[]
   organizer_name: string
   organizer_bio: string | null
+  organizer_id: string | null
   status: string
   created_at: string
 }

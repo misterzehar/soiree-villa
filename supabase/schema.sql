@@ -193,3 +193,95 @@ as $$
   set capacity_current = capacity_current + 1
   where id = exp_id;
 $$;
+
+-- ─── Phase 2 — Espace organisateur ────────────────────────────────────────────
+
+create table if not exists organizers (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null unique references auth.users(id) on delete cascade,
+  display_name    text not null,
+  bio             text,
+  photo_url       text,
+  organizer_type  text not null default 'amateur',  -- 'amateur' | 'pro'
+  city            text not null default 'Nice',
+  commission_rate numeric(4,2) not null default 0.15,
+  is_approved     boolean not null default false,
+  created_at      timestamptz default now()
+);
+
+alter table organizers enable row level security;
+
+create policy "organizers_select_own"
+  on organizers for select
+  to authenticated
+  using (user_id = auth.uid());
+
+create policy "organizers_update_own"
+  on organizers for update
+  to authenticated
+  using (user_id = auth.uid());
+
+-- organizer_id nullable sur experiences (les expériences pilotes MVP restent sans organizer)
+alter table experiences
+  add column if not exists organizer_id uuid references organizers(id);
+
+create index if not exists experiences_organizer_idx on experiences(organizer_id);
+
+-- Un organisateur peut voir toutes ses expériences (y compris draft)
+create policy "experiences_select_own_organizer"
+  on experiences for select
+  to authenticated
+  using (
+    organizer_id in (select id from organizers where user_id = auth.uid())
+  );
+
+-- Un organisateur peut créer des expériences
+create policy "experiences_insert_organizer"
+  on experiences for insert
+  to authenticated
+  with check (
+    organizer_id in (select id from organizers where user_id = auth.uid())
+  );
+
+-- Un organisateur peut modifier ses expériences
+create policy "experiences_update_organizer"
+  on experiences for update
+  to authenticated
+  using (
+    organizer_id in (select id from organizers where user_id = auth.uid())
+  );
+
+-- Commission plateforme (15%) stockée au moment du paiement Stripe
+alter table registrations
+  add column if not exists platform_fee_cents integer;
+
+-- Check-in le jour J
+alter table registrations
+  add column if not exists checked_in boolean not null default false;
+
+alter table registrations
+  add column if not exists checked_in_at timestamptz;
+
+-- Un organisateur peut lire les inscriptions de ses expériences
+create policy "registrations_select_organizer"
+  on registrations for select
+  to authenticated
+  using (
+    experience_id in (
+      select e.id from experiences e
+      join organizers o on o.id = e.organizer_id
+      where o.user_id = auth.uid()
+    )
+  );
+
+-- Un organisateur peut mettre à jour checked_in sur ses inscriptions
+create policy "registrations_update_organizer"
+  on registrations for update
+  to authenticated
+  using (
+    experience_id in (
+      select e.id from experiences e
+      join organizers o on o.id = e.organizer_id
+      where o.user_id = auth.uid()
+    )
+  );
