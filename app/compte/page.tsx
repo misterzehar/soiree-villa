@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, MapPin, LogOut } from 'lucide-react'
+import { Calendar, MapPin, LogOut, MessageCircle } from 'lucide-react'
 import { createSupabaseServerClient } from '@/lib/supabase'
 import { createServerSupabase } from '@/lib/supabase'
 import { PROFILES } from '@/constants/profiles'
@@ -75,6 +75,42 @@ export default async function ComptePage() {
 
   const upcomingList = (upcoming ?? []) as unknown as Registration[]
   const pastList = (past ?? []) as unknown as Registration[]
+
+  // Unread message badges
+  const expIds = upcomingList.filter(r => r.experiences).map(r => r.experiences!.id)
+  const unreadByExp: Record<string, number> = {}
+
+  if (expIds.length > 0) {
+    const { data: convRows } = await serviceSupabase
+      .from('conversations')
+      .select('id, experience_id')
+      .in('experience_id', expIds)
+
+    const convIds = (convRows ?? []).map(c => c.id)
+
+    const readMap: Record<string, string> = {}
+    if (convIds.length > 0) {
+      const { data: readRowsData } = await serviceSupabase
+        .from('message_reads')
+        .select('conversation_id, last_read_at')
+        .eq('user_id', user.id)
+        .in('conversation_id', convIds)
+      for (const r of readRowsData ?? []) readMap[r.conversation_id] = r.last_read_at
+    }
+
+    await Promise.all(
+      (convRows ?? []).map(async (conv) => {
+        const lastRead = readMap[conv.id] ?? '1970-01-01T00:00:00Z'
+        const { count } = await serviceSupabase
+          .from('messages')
+          .select('id', { count: 'exact', head: true })
+          .eq('conversation_id', conv.id)
+          .is('deleted_at', null)
+          .gt('created_at', lastRead)
+        unreadByExp[conv.experience_id] = count ?? 0
+      }),
+    )
+  }
 
   return (
     <main className="min-h-screen bg-bg">
@@ -151,15 +187,17 @@ export default async function ComptePage() {
           ) : (
             <div className="flex flex-col gap-3">
               {upcomingList.map(reg => reg.experiences && (
-                <Link
+                <div
                   key={reg.id}
-                  href={`/experiences/${reg.experiences.id}`}
                   className="bg-surface rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <p className="font-display font-semibold text-text leading-snug">
+                    <Link
+                      href={`/experiences/${reg.experiences.id}`}
+                      className="font-display font-semibold text-text leading-snug hover:text-primary transition-colors flex-1"
+                    >
                       {reg.experiences.title}
-                    </p>
+                    </Link>
                     <span className="text-primary font-semibold text-sm shrink-0">
                       {reg.amount_paid_cents != null ? `${Math.round(reg.amount_paid_cents / 100)} €` : ''}
                     </span>
@@ -172,10 +210,24 @@ export default async function ComptePage() {
                     <MapPin className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">{reg.experiences.venue_name}</span>
                   </div>
-                  <span className="inline-block mt-2 text-xs bg-success/10 text-success font-medium px-2 py-0.5 rounded-full">
-                    {TIER_LABELS[reg.tier_id] ?? reg.tier_id}
-                  </span>
-                </Link>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs bg-success/10 text-success font-medium px-2 py-0.5 rounded-full">
+                      {TIER_LABELS[reg.tier_id] ?? reg.tier_id}
+                    </span>
+                    <Link
+                      href={`/chat/${reg.experiences.id}`}
+                      className="relative flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Chat
+                      {(unreadByExp[reg.experiences.id] ?? 0) > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1">
+                          {unreadByExp[reg.experiences.id]}
+                        </span>
+                      )}
+                    </Link>
+                  </div>
+                </div>
               ))}
             </div>
           )}

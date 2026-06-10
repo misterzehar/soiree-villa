@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Users, TrendingUp, CheckCircle, Circle, Pencil } from 'lucide-react'
+import { ArrowLeft, Users, TrendingUp, CheckCircle, Circle, Pencil, MessageCircle } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
 import { formatPrice } from '@/lib/pricing'
@@ -150,13 +150,24 @@ export default async function ManageSoireePage({
             <h1 className="font-display font-bold text-lg text-text leading-snug flex-1">
               {experience.title}
             </h1>
-            <Link
-              href={`/organisateur/soirees/${id}/edit`}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-colors shrink-0"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              Modifier
-            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              {registrations.length > 0 && (
+                <Link
+                  href={`/chat/${id}`}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 bg-secondary/10 text-secondary rounded-xl hover:bg-secondary/20 transition-colors"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  Chat
+                </Link>
+              )}
+              <Link
+                href={`/organisateur/soirees/${id}/edit`}
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Modifier
+              </Link>
+            </div>
           </div>
           <div className="flex items-center gap-2 mb-2">
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusMeta.color}`}>
