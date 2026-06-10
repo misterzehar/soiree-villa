@@ -2,6 +2,11 @@ import Link from "next/link";
 import { Sparkles, User, Calendar } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/waitlist-form";
 import { SiteHeader } from "@/components/site-header";
+import { createServerSupabase, createSupabaseServerClient } from "@/lib/supabase";
+import { getActorProfiles } from "@/lib/actors";
+import type { ActorProfiles } from "@/lib/actors";
+
+export const dynamic = 'force-dynamic'
 
 // ─── Données statiques ───────────────────────────────────────────────────────
 
@@ -70,7 +75,85 @@ const EXPERIENCES_PREVIEW = [
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = createServerSupabase()
+
+  // Compteurs publics
+  const [
+    { count: expCount },
+    { count: lieuxCount },
+    { count: fournisseursCount },
+  ] = await Promise.all([
+    supabase.from('experiences').select('*', { count: 'exact', head: true }).eq('status', 'published'),
+    supabase.from('lieux').select('*', { count: 'exact', head: true }).eq('is_approved', true),
+    supabase.from('fournisseurs').select('*', { count: 'exact', head: true }).eq('is_approved', true),
+  ])
+
+  // Profils de l'utilisateur connecté (pour la section "Tu es un pro?")
+  const authClient = await createSupabaseServerClient()
+  const { data: { user } } = await authClient.auth.getUser()
+  const profiles: ActorProfiles = user
+    ? await getActorProfiles(user.id)
+    : { hasOrga: false, hasLieu: false, hasFourn: false }
+
+  const exp = expCount ?? 0
+  const lieux = lieuxCount ?? 0
+  const fournisseurs = fournisseursCount ?? 0
+
+  const EXPLORE_CARDS = [
+    {
+      href: '/experiences',
+      icon: '🎉',
+      title: 'Soirées',
+      desc: exp > 0
+        ? `${exp} expérience${exp > 1 ? 's' : ''} animée${exp > 1 ? 's' : ''} disponible${exp > 1 ? 's' : ''} à Nice`
+        : 'Bientôt disponibles à Nice',
+    },
+    {
+      href: '/lieux',
+      icon: '🏠',
+      title: 'Lieux',
+      desc: lieux > 0
+        ? `${lieux} lieu${lieux > 1 ? 'x' : ''} partenaire${lieux > 1 ? 's' : ''} — du rooftop au loft industriel`
+        : 'Lieux partenaires à Nice',
+    },
+    {
+      href: '/fournisseurs',
+      icon: '🎵',
+      title: 'Fournisseurs',
+      desc: fournisseurs > 0
+        ? `${fournisseurs} prestataire${fournisseurs > 1 ? 's' : ''} : DJ, traiteur, déco, animation`
+        : 'DJ, traiteur, déco, animation',
+    },
+  ]
+
+  const PRO_CARDS = [
+    {
+      icon: '🎩',
+      role: 'Organisateur',
+      desc: 'Crée et anime des soirées structurées. Accède à notre réseau de lieux et fournisseurs.',
+      href: profiles.hasOrga ? '/organisateur' : '/organisateur/inscription',
+      label: profiles.hasOrga ? 'Accéder à mon espace →' : 'Devenir organisateur',
+      isRegistered: profiles.hasOrga,
+    },
+    {
+      icon: '🏠',
+      role: 'Lieu',
+      desc: "Propose ton espace aux organisateurs. Visibilité immédiate auprès des créateurs d'événements.",
+      href: profiles.hasLieu ? '/lieu' : '/lieu/inscription',
+      label: profiles.hasLieu ? 'Accéder à mon espace →' : 'Inscrire mon lieu',
+      isRegistered: profiles.hasLieu,
+    },
+    {
+      icon: '🎵',
+      role: 'Fournisseur',
+      desc: 'DJ, traiteur, décoration, animation — rejoins la marketplace et sois contacté directement.',
+      href: profiles.hasFourn ? '/fournisseur' : '/fournisseur/inscription',
+      label: profiles.hasFourn ? 'Accéder à mon espace →' : 'Inscrire ma prestation',
+      isRegistered: profiles.hasFourn,
+    },
+  ]
+
   return (
     <main className="bg-bg min-h-screen">
 
@@ -123,6 +206,38 @@ export default function HomePage() {
 
         <div aria-hidden className="relative z-10 flex justify-center pb-8 text-white/30 text-xs animate-bounce">
           ↓
+        </div>
+      </section>
+
+      {/* ── EXPLORER ─────────────────────────────────────────────────────── */}
+      <section className="px-6 py-14 md:px-12 md:py-20 max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
+            Explorer
+          </p>
+          <h2 className="font-display font-bold text-3xl text-text mb-2">
+            Tout ce que propose Soirée Villa
+          </h2>
+          <p className="text-text-muted text-sm">Soirées, lieux et prestataires à Nice</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {EXPLORE_CARDS.map(card => (
+            <Link
+              key={card.href}
+              href={card.href}
+              className="bg-surface border border-border rounded-2xl p-6 hover:shadow-md hover:border-primary/30 transition-all duration-200 flex flex-col gap-3 group"
+            >
+              <span className="text-3xl">{card.icon}</span>
+              <div className="flex-1">
+                <p className="font-display font-semibold text-lg text-text group-hover:text-primary transition-colors">
+                  {card.title}
+                </p>
+                <p className="text-text-muted text-sm mt-1 leading-relaxed">{card.desc}</p>
+              </div>
+              <p className="text-primary text-sm font-semibold">Explorer →</p>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -219,6 +334,48 @@ export default function HomePage() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── TU ES UN PRO ? ────────────────────────────────────────────────── */}
+      <section className="bg-surface border-y border-border px-6 py-16 md:px-12 md:py-24">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
+              Partenaires
+            </p>
+            <h2 className="font-display font-bold text-3xl text-text mb-3">
+              Tu es un pro ?
+            </h2>
+            <p className="text-text-muted max-w-sm mx-auto">
+              Rejoins Soirée Villa — organisateurs, lieux et prestataires bienvenus.
+            </p>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4">
+            {PRO_CARDS.map(card => (
+              <Link
+                key={card.role}
+                href={card.href}
+                className={`flex-1 rounded-2xl border p-6 transition-all duration-200 group hover:shadow-md ${
+                  card.isRegistered
+                    ? 'border-success/30 bg-success/5 hover:border-success/50'
+                    : 'border-border bg-bg hover:border-primary/30'
+                }`}
+              >
+                <span className="text-3xl mb-3 block">{card.icon}</span>
+                <p className="font-display font-semibold text-lg text-text mb-2">{card.role}</p>
+                <p className="text-text-muted text-sm mb-4 leading-relaxed">{card.desc}</p>
+                <p className={`text-sm font-semibold transition-colors ${
+                  card.isRegistered
+                    ? 'text-success'
+                    : 'text-primary group-hover:text-primary/80'
+                }`}>
+                  {card.label}
+                </p>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

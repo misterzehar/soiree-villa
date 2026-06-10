@@ -1,97 +1,72 @@
 import Link from 'next/link'
-import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
+import { createSupabaseServerClient } from '@/lib/supabase'
+import { getActorProfiles } from '@/lib/actors'
+import { NavClient } from './nav-client'
+import type { NavLink } from './nav-client'
 
 type Props = {
-  /** 'light' (fond blanc/gris) ou 'dark' (fond sombre — hero landing) */
   variant?: 'light' | 'dark'
-  /** Contenu optionnel à insérer entre le logo et les liens auth (ex : badge profil) */
   center?: React.ReactNode
 }
 
-type ActorProfile = 'organisateur' | 'lieu' | 'fournisseur' | null
-
-async function getActorProfile(userId: string): Promise<ActorProfile> {
-  const supabase = createServerSupabase()
-  const [{ data: orga }, { data: lieu }, { data: fourn }] = await Promise.all([
-    supabase.from('organizers').select('id').eq('user_id', userId).single(),
-    supabase.from('lieux').select('id').eq('claimed_by_user_id', userId).single(),
-    supabase.from('fournisseurs').select('id').eq('claimed_by_user_id', userId).single(),
-  ])
-  if (orga) return 'organisateur'
-  if (lieu) return 'lieu'
-  if (fourn) return 'fournisseur'
-  return null
-}
-
-const ACTOR_LINKS: Record<Exclude<ActorProfile, null>, { href: string; label: string }> = {
-  organisateur: { href: '/organisateur',  label: 'Espace orga'        },
-  lieu:         { href: '/lieu',          label: 'Espace lieu'         },
-  fournisseur:  { href: '/fournisseur',   label: 'Espace fournisseur'  },
-}
+const PUBLIC_NAV: NavLink[] = [
+  { href: '/experiences', label: 'Soirées' },
+  { href: '/lieux',       label: 'Lieux'   },
+  { href: '/fournisseurs', label: 'Fournisseurs' },
+]
 
 export async function SiteHeader({ variant = 'light', center }: Props) {
   const authClient = await createSupabaseServerClient()
   const { data: { user } } = await authClient.auth.getUser()
 
-  const actor = user ? await getActorProfile(user.id) : null
+  const espaces: NavLink[] = []
+  const inscriptions: NavLink[] = []
+
+  if (user) {
+    const profiles = await getActorProfiles(user.id)
+
+    if (profiles.hasOrga)   espaces.push({ href: '/organisateur', label: 'Espace orga' })
+    else                    inscriptions.push({ href: '/organisateur/inscription', label: 'Devenir organisateur' })
+
+    if (profiles.hasLieu)   espaces.push({ href: '/lieu', label: 'Espace lieu' })
+    else                    inscriptions.push({ href: '/lieu/inscription', label: 'Inscrire mon lieu' })
+
+    if (profiles.hasFourn)  espaces.push({ href: '/fournisseur', label: 'Espace fournisseur' })
+    else                    inscriptions.push({ href: '/fournisseur/inscription', label: 'Inscrire mon fournisseur' })
+  }
 
   const isDark = variant === 'dark'
   const logoClass = isDark ? 'text-white' : 'text-text'
-  const linkClass = isDark
-    ? 'text-white/70 hover:text-white text-sm transition-colors'
+  const publicLinkClass = isDark
+    ? 'text-white/65 hover:text-white text-sm transition-colors'
     : 'text-text-muted hover:text-text text-sm transition-colors'
 
   return (
-    <div className="flex items-center justify-between gap-3">
-      <Link href="/" className={`font-display font-bold text-lg tracking-tight ${logoClass}`}>
+    <div className="flex items-center gap-4">
+      {/* Logo */}
+      <Link href="/" className={`font-display font-bold text-lg tracking-tight shrink-0 ${logoClass}`}>
         Soirée Villa
       </Link>
 
-      {center && <div className="flex-1">{center}</div>}
-
-      <nav className="flex items-center gap-2 shrink-0">
-        {user ? (
-          <>
-            <Link href="/compte" className={linkClass}>
-              Mon compte
-            </Link>
-            {actor ? (
-              <Link
-                href={ACTOR_LINKS[actor].href}
-                className={`text-sm font-semibold px-3 py-1.5 rounded-full transition-colors ${
-                  isDark
-                    ? 'bg-white/15 text-white hover:bg-white/25'
-                    : 'bg-primary/10 text-primary hover:bg-primary/20'
-                }`}
-              >
-                {ACTOR_LINKS[actor].label}
-              </Link>
-            ) : (
-              <Link
-                href="/organisateur/inscription"
-                className={`text-sm font-semibold px-3 py-1.5 rounded-full border transition-colors ${
-                  isDark
-                    ? 'border-white/30 text-white hover:bg-white/10'
-                    : 'border-primary/30 text-primary hover:bg-primary/5'
-                }`}
-              >
-                Devenir orga
-              </Link>
-            )}
-          </>
-        ) : (
-          <Link
-            href="/connexion"
-            className={`text-sm font-semibold px-3 py-1.5 rounded-full border transition-colors ${
-              isDark
-                ? 'border-white/30 text-white hover:bg-white/10'
-                : 'border-border text-text-muted hover:text-text hover:border-text-muted'
-            }`}
-          >
-            Connexion
+      {/* Liens publics — desktop seulement */}
+      <nav className="hidden md:flex items-center gap-5 flex-1">
+        {PUBLIC_NAV.map(link => (
+          <Link key={link.href} href={link.href} className={publicLinkClass}>
+            {link.label}
           </Link>
-        )}
+        ))}
       </nav>
+
+      {center && <div className="flex-1 md:flex-none">{center}</div>}
+
+      {/* Client : drawer mobile + nav auth desktop */}
+      <NavClient
+        variant={variant}
+        isConnected={!!user}
+        espaces={espaces}
+        inscriptions={inscriptions}
+        publicLinks={PUBLIC_NAV}
+      />
     </div>
   )
 }
