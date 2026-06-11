@@ -56,15 +56,15 @@ export default async function ChatPage({ params }: { params: Promise<{ experienc
 
   // Check paid participant
   if (!isOrganizer) {
-    const { data: reg } = await supabase
+    const { data: regs } = await supabase
       .from('registrations')
       .select('id')
       .eq('experience_id', experienceId)
       .eq('participant_email', user.email!)
       .eq('payment_status', 'paid')
-      .single()
+      .limit(1)
 
-    if (!reg) {
+    if (!regs || regs.length === 0) {
       redirect(`/experiences/${experienceId}?error=chat_access`)
     }
   }
