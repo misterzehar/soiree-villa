@@ -98,13 +98,21 @@ export default async function LieuDashboardPage() {
           </div>
         </div>
 
-        {/* Demandes reçues — placeholder */}
-        <div className="bg-surface rounded-2xl p-5 shadow-sm">
-          <h3 className="font-display font-semibold text-base text-text mb-3">Demandes reçues</h3>
-          <p className="text-text-muted text-sm">
-            Les organisateurs qui souhaitent utiliser votre lieu vous contacteront ici. (Disponible prochainement)
-          </p>
-        </div>
+        {/* Demandes reçues */}
+        <Link
+          href="/lieu/demandes"
+          className="block bg-surface rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-display font-semibold text-base text-text mb-0.5">Demandes reçues</h3>
+              <p className="text-text-muted text-sm">
+                Appels d&apos;offres d&apos;organisateurs pour votre ville.
+              </p>
+            </div>
+            <span className="text-primary text-sm font-semibold shrink-0">Voir →</span>
+          </div>
+        </Link>
 
       </div>
     </main>

@@ -61,6 +61,223 @@ export async function sendOrganizerMessageEmail(data: OrganizerMessageEmailData)
   })
 }
 
+// ─── Phase 5 — Appels d'offres ───────────────────────────────
+
+type BriefOpenEmailData = {
+  to: string
+  firstName: string
+  organizerName: string
+  briefTitle: string
+  briefDescription: string
+  city: string
+  eventDate: string
+  budgetLabel: string | null
+  briefId: string
+  actorType: 'lieu' | 'fournisseur'
+}
+
+export async function sendBriefOpenEmail(data: BriefOpenEmailData) {
+  const { to, firstName, organizerName, briefTitle, briefDescription, city, eventDate, budgetLabel, briefId, actorType } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const briefUrl = `${baseUrl}/${actorType}/demandes/${briefId}`
+  const dateFmt = new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: `Nouvelle demande de ${organizerName} — ${briefTitle}`,
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#4A6CF7,#A259FF);padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:20px;font-weight:700;color:#FFFFFF;">Nouvelle demande reçue</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${firstName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;"><strong>${organizerName}</strong> recherche un${actorType === 'lieu' ? ' lieu' : ' prestataire'} pour :</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5FA;border-radius:12px;margin-bottom:20px;">
+            <tr><td style="padding:16px 20px;">
+              <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1A1A2E;">${briefTitle}</p>
+              <p style="margin:0 0 12px;font-size:13px;color:#6B6B7A;line-height:1.6;">${briefDescription.slice(0, 300)}${briefDescription.length > 300 ? '…' : ''}</p>
+              <p style="margin:0 0 4px;font-size:12px;color:#6B6B7A;">📅 ${dateFmt} · 📍 ${city}${budgetLabel ? ` · 💰 Budget estimé : ${budgetLabel}` : ''}</p>
+            </td></tr>
+          </table>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center">
+              <a href="${briefUrl}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:12px;">
+                Voir la demande et répondre →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
+type NewOfferEmailData = {
+  to: string
+  organizerFirstName: string
+  responderName: string
+  briefTitle: string
+  amountCents: number
+  briefId: string
+}
+
+export async function sendNewOfferEmail(data: NewOfferEmailData) {
+  const { to, organizerFirstName, responderName, briefTitle, amountCents, briefId } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const briefUrl = `${baseUrl}/organisateur/briefs/${briefId}`
+  const amountFmt = `${Math.round(amountCents / 100)} €`
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: `${responderName} a répondu à votre appel d'offres — ${briefTitle}`,
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#4A6CF7,#A259FF);padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:20px;font-weight:700;color:#FFFFFF;">Nouvelle offre reçue</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${organizerFirstName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;"><strong>${responderName}</strong> a répondu à votre appel d'offres <strong>${briefTitle}</strong> avec une offre de <strong style="color:#4A6CF7;">${amountFmt}</strong>.</p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center">
+              <a href="${briefUrl}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:12px;">
+                Voir les offres →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
+type OfferSelectedEmailData = {
+  to: string
+  firstName: string
+  briefTitle: string
+  amountCents: number
+  platformFeeCents: number
+  briefId: string
+  actorType: 'lieu' | 'fournisseur'
+}
+
+export async function sendOfferSelectedEmail(data: OfferSelectedEmailData) {
+  const { to, firstName, briefTitle, amountCents, platformFeeCents, briefId, actorType } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const briefUrl = `${baseUrl}/${actorType}/demandes/${briefId}`
+  const netCents = amountCents - platformFeeCents
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: `Votre offre a été retenue — ${briefTitle} 🎉`,
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#4A6CF7,#A259FF);padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:22px;font-weight:700;color:#FFFFFF;">Félicitations, votre offre est retenue ✓</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${firstName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;">L'organisateur a retenu votre offre pour <strong>${briefTitle}</strong>.</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5FA;border-radius:12px;margin-bottom:24px;">
+            <tr><td style="padding:16px 20px;">
+              <p style="margin:0 0 8px;font-size:12px;color:#6B6B7A;text-transform:uppercase;letter-spacing:1px;">Montant de votre offre</p>
+              <p style="margin:0 0 4px;font-size:24px;font-weight:700;color:#4A6CF7;">${Math.round(amountCents / 100)} €</p>
+              <p style="margin:0;font-size:12px;color:#6B6B7A;">Commission Soirée Villa (15%) : ${Math.round(platformFeeCents / 100)} € · Net reversé : ${Math.round(netCents / 100)} €</p>
+            </td></tr>
+          </table>
+          <p style="margin:0 0 20px;font-size:13px;color:#6B6B7A;">L'équipe Soirée Villa vous contactera pour les modalités de paiement et de reversement.</p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center">
+              <a href="${briefUrl}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:12px;">
+                Voir la demande →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
+type OfferRejectedEmailData = {
+  to: string
+  firstName: string
+  briefTitle: string
+}
+
+export async function sendOfferRejectedEmail(data: OfferRejectedEmailData) {
+  const { to, firstName, briefTitle } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: `Résultat de votre offre — ${briefTitle}`,
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:#F5F5FA;padding:24px 32px;text-align:center;border-bottom:1px solid #E5E5F0;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#6B6B7A;letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:18px;font-weight:700;color:#1A1A2E;">Résultat de votre candidature</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${firstName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;line-height:1.6;">L'organisateur a sélectionné une autre offre pour <strong>${briefTitle}</strong>. Votre candidature n'a pas été retenue cette fois-ci.</p>
+          <p style="margin:0;font-size:14px;color:#6B6B7A;">D'autres demandes vous attendent — consultez votre espace pour voir les nouvelles opportunités.</p>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
+// ─────────────────────────────────────────────────────────────
+
 type ConfirmationEmailData = {
   to: string
   firstName: string
