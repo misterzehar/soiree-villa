@@ -17,7 +17,7 @@ export async function sendOrganizerMessageEmail(data: OrganizerMessageEmailData)
   const chatUrl = `${baseUrl}/chat/${experienceId}`
 
   await resend.emails.send({
-    from: 'Soirée Villa <onboarding@resend.dev>',
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
     to,
     subject: `${organizerName} a posté un message — ${experienceTitle}`,
     html: `
@@ -94,7 +94,7 @@ export async function sendConfirmationEmail(data: ConfirmationEmailData) {
   const dateFmt = formatDate(experienceDate)
 
   await resend.emails.send({
-    from: 'Soirée Villa <onboarding@resend.dev>',
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
     to,
     subject: `Ta place est confirmée — ${experienceTitle}`,
     html: `
