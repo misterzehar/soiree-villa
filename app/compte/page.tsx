@@ -1,10 +1,13 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, MapPin, LogOut, MessageCircle } from 'lucide-react'
+import { cookies } from 'next/headers'
+import { Calendar, MapPin, LogOut, MessageCircle, Sparkles } from 'lucide-react'
 import { createSupabaseServerClient } from '@/lib/supabase'
 import { createServerSupabase } from '@/lib/supabase'
 import { PROFILES } from '@/constants/profiles'
-import type { ProfileId } from '@/constants/profiles'
+import { matchScore, deriveExperienceAxes } from '@/lib/matching'
+import type { ProfileId, AxesTarget } from '@/constants/profiles'
+import type { Experience } from '@/types/experience'
 import { signOut } from '@/app/auth/actions'
 
 type Registration = {
@@ -40,7 +43,7 @@ export default async function ComptePage() {
 
   if (!user) redirect('/connexion')
 
-  // Profil social
+  // Profil social + données compte
   const serviceSupabase = createServerSupabase()
   const { data: profile } = await serviceSupabase
     .from('profiles')
@@ -49,10 +52,54 @@ export default async function ComptePage() {
     .single()
 
   const socialProfile = profile?.social_profile_id
-    ? PROFILES.find(p => p.id === profile.social_profile_id as ProfileId) ?? null
+    ? PROFILES.find(p => p.id === (profile.social_profile_id as ProfileId)) ?? null
     : null
 
+  // Parse user axes from cookie (6D — only present after new onboarding)
+  const cookieStore = await cookies()
+  let userAxes: AxesTarget | null = null
+  let hasNewProfile = false
+
+  const axesCookieRaw = cookieStore.get('sv_axes')?.value
+  if (axesCookieRaw) {
+    try {
+      const parsed = JSON.parse(axesCookieRaw)
+      if ('cerebrale' in parsed) {
+        userAxes = parsed as AxesTarget
+        hasNewProfile = true
+      }
+    } catch { /* ignore */ }
+  }
+
+  const profileId = cookieStore.get('sv_profile')?.value as ProfileId | null
+
+  // Migration banner: user has a social profile but hasn't done the 6D onboarding
+  const isLegacyProfile = !!socialProfile && !hasNewProfile
+
   const now = new Date().toISOString()
+
+  // "Soirées pour toi" — top 3 when user has 6D axes
+  let topExperiences: Array<{ exp: Experience; score: number }> = []
+  if (userAxes) {
+    const { data: expData } = await serviceSupabase
+      .from('experiences')
+      .select('*')
+      .eq('status', 'published')
+      .gt('date', now)
+      .order('date', { ascending: true })
+      .limit(30)
+
+    const allExps = (expData ?? []) as Experience[]
+    topExperiences = allExps
+      .map(exp => ({
+        exp,
+        score: profileId && exp.compatible_profiles.includes(profileId)
+          ? 100
+          : matchScore(userAxes!, deriveExperienceAxes(exp.compatible_profiles)),
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+  }
 
   // Inscriptions à venir
   const { data: upcoming } = await serviceSupabase
@@ -74,7 +121,7 @@ export default async function ComptePage() {
     .limit(5)
 
   const upcomingList = (upcoming ?? []) as unknown as Registration[]
-  const pastList = (past ?? []) as unknown as Registration[]
+  const pastList     = (past ?? []) as unknown as Registration[]
 
   // Unread message badges
   const expIds = upcomingList.filter(r => r.experiences).map(r => r.experiences!.id)
@@ -87,8 +134,8 @@ export default async function ComptePage() {
       .in('experience_id', expIds)
 
     const convIds = (convRows ?? []).map(c => c.id)
-
     const readMap: Record<string, string> = {}
+
     if (convIds.length > 0) {
       const { data: readRowsData } = await serviceSupabase
         .from('message_reads')
@@ -167,7 +214,55 @@ export default async function ComptePage() {
               Découvrir mon profil social →
             </Link>
           )}
+
+          {/* Migration banner */}
+          {isLegacyProfile && (
+            <Link
+              href="/onboarding"
+              className="mt-3 flex items-center gap-3 bg-warning/5 border border-warning/20 rounded-xl px-4 py-3 hover:bg-warning/10 transition-colors"
+            >
+              <Sparkles className="w-5 h-5 text-warning shrink-0" />
+              <div>
+                <p className="text-warning text-xs font-semibold">Affine ton profil</p>
+                <p className="text-text-muted text-xs">On a ajouté 2 nouveaux axes — refais le quiz pour des matchs encore plus précis.</p>
+              </div>
+            </Link>
+          )}
         </div>
+
+        {/* Soirées pour toi — top 3 */}
+        {topExperiences.length > 0 && (
+          <section className="mb-6">
+            <h2 className="font-display font-semibold text-lg text-text mb-3">
+              Soirées pour toi
+            </h2>
+            <div className="flex flex-col gap-3">
+              {topExperiences.map(({ exp, score }) => (
+                <Link
+                  key={exp.id}
+                  href={`/experiences/${exp.id}`}
+                  className="bg-surface rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow flex items-center gap-3"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shrink-0">
+                    <span className="text-primary font-bold text-sm">{score}%</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-semibold text-text text-sm truncate">{exp.title}</p>
+                    <p className="text-text-muted text-xs capitalize">
+                      {new Date(exp.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} · {exp.venue_name}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+              <Link
+                href="/experiences"
+                className="text-center text-primary text-sm font-medium py-2 hover:underline"
+              >
+                Voir toutes les expériences →
+              </Link>
+            </div>
+          </section>
+        )}
 
         {/* Soirées à venir */}
         <section className="mb-6">

@@ -38,6 +38,7 @@ export type Experience = {
   venue_id: string | null
   status: string
   created_at: string
+  axes_scores: Record<string, number> | null
 }
 
 export type CurrentTierInfo = {

@@ -2,44 +2,61 @@ import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase'
 import { PROFILES } from '@/constants/profiles'
-import type { ProfileId } from '@/constants/profiles'
+import { matchScore, deriveExperienceAxes } from '@/lib/matching'
+import type { ProfileId, AxesTarget } from '@/constants/profiles'
 import type { Experience } from '@/types/experience'
 import { ExperiencesList } from '@/components/experiences/experiences-list'
 import { EmptyState } from '@/components/experiences/empty-state'
 import { SiteHeader } from '@/components/site-header'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
-async function getExperiences(profileId: ProfileId | null): Promise<Experience[]> {
+export default async function ExperiencesPage() {
+  const cookieStore = await cookies()
+  const profileId = cookieStore.get('sv_profile')?.value as ProfileId | null
+
+  // Parse user's 6D normalized axes from cookie (set by Phase 7 onboarding)
+  let userAxes: AxesTarget | null = null
+  const axesCookieRaw = cookieStore.get('sv_axes')?.value
+  if (axesCookieRaw) {
+    try {
+      const parsed = JSON.parse(axesCookieRaw)
+      if ('energy' in parsed) userAxes = parsed as AxesTarget
+    } catch { /* ignore */ }
+  }
+
+  const profile = profileId ? PROFILES.find(p => p.id === profileId) ?? null : null
+
+  // Fetch ALL published future experiences (no profile filter — we sort by score instead)
   const supabase = createServerSupabase()
   const now = new Date().toISOString()
-
-  let query = supabase
+  const { data } = await supabase
     .from('experiences')
     .select('*')
     .eq('status', 'published')
     .gt('date', now)
     .order('date', { ascending: true })
 
-  if (profileId) {
-    query = query.contains('compatible_profiles', [profileId])
+  let experiences = (data ?? []) as Experience[]
+
+  // Compute match scores and sort descending when user has 6D axes
+  const matchScores: Record<string, number> = {}
+  if (userAxes) {
+    for (const exp of experiences) {
+      // Override: if user's profileId is in compatible_profiles → perfect match
+      if (profileId && exp.compatible_profiles.includes(profileId)) {
+        matchScores[exp.id] = 100
+      } else {
+        const expAxes = deriveExperienceAxes(exp.compatible_profiles)
+        matchScores[exp.id] = matchScore(userAxes, expAxes)
+      }
+    }
+    experiences = [...experiences].sort((a, b) => (matchScores[b.id] ?? 0) - (matchScores[a.id] ?? 0))
   }
-
-  const { data } = await query
-  return (data ?? []) as Experience[]
-}
-
-export default async function ExperiencesPage() {
-  const cookieStore = await cookies()
-  const profileId = cookieStore.get('sv_profile')?.value as ProfileId | null
-  const profile = profileId ? PROFILES.find(p => p.id === profileId) ?? null : null
-
-  const experiences = await getExperiences(profileId)
 
   return (
     <main className="min-h-screen bg-bg">
       <div className="max-w-md mx-auto px-4 pt-8 pb-24">
-        {/* Header */}
         <div className="mb-6">
           <SiteHeader
             center={profile ? (
@@ -62,8 +79,10 @@ export default async function ExperiencesPage() {
               </h1>
               <p className="text-text-muted text-sm mt-1">
                 {experiences.length > 0
-                  ? `${experiences.length} expérience${experiences.length > 1 ? 's' : ''} qui matche${experiences.length > 1 ? 'nt' : ''} ton style`
-                  : 'Aucune expérience disponible pour ton profil pour le moment.'}
+                  ? userAxes
+                    ? `${experiences.length} expérience${experiences.length > 1 ? 's' : ''} — triée${experiences.length > 1 ? 's' : ''} par affinité`
+                    : `${experiences.length} expérience${experiences.length > 1 ? 's' : ''} qui matche${experiences.length > 1 ? 'nt' : ''} ton style`
+                  : 'Aucune expérience disponible pour le moment.'}
               </p>
             </>
           ) : (
@@ -83,9 +102,11 @@ export default async function ExperiencesPage() {
           )}
         </div>
 
-        {/* List or empty state */}
         {experiences.length > 0 ? (
-          <ExperiencesList experiences={experiences} />
+          <ExperiencesList
+            experiences={experiences}
+            matchScores={userAxes ? matchScores : undefined}
+          />
         ) : (
           <EmptyState />
         )}

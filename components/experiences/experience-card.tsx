@@ -15,12 +15,20 @@ function formatDate(dateStr: string): string {
   }) + ' · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 }
 
+function matchBadgeColor(score: number): string {
+  if (score >= 80) return 'bg-success/90'
+  if (score >= 60) return 'bg-primary/90'
+  return 'bg-text-muted/80'
+}
+
 export function ExperienceCard({
   experience,
   index = 0,
+  matchScore,
 }: {
   experience: Experience
   index?: number
+  matchScore?: number
 }) {
   const tierInfo = getCurrentTierInfo(experience)
   const gradient = getGradientForExperience(experience.compatible_profiles)
@@ -46,7 +54,15 @@ export function ExperienceCard({
           ) : (
             <div className={`w-full h-full bg-gradient-to-br ${gradient}`} />
           )}
-          {/* Last chance badge */}
+
+          {/* Match score badge — top left */}
+          {matchScore !== undefined && (
+            <span className={`absolute top-3 left-3 ${matchBadgeColor(matchScore)} text-white text-xs font-bold px-2.5 py-1 rounded-full backdrop-blur-sm`}>
+              {matchScore}% match
+            </span>
+          )}
+
+          {/* Status badges — top right */}
           {!tierInfo.isSoldOut && tierInfo.tier.id === 'last' && (
             <span className="absolute top-3 right-3 bg-error/90 text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm">
               Last chance
@@ -60,17 +76,12 @@ export function ExperienceCard({
         </div>
 
         <div className="p-4">
-          {/* Title */}
           <h2 className="font-display font-semibold text-lg text-text leading-snug mb-1">
             {experience.title}
           </h2>
-
-          {/* Date */}
           <p className="text-text-muted text-sm mb-2 capitalize">
             {formatDate(experience.date)}
           </p>
-
-          {/* Venue */}
           <div className="flex items-center gap-1 text-text-muted text-sm mb-3">
             <MapPin className="w-3.5 h-3.5 shrink-0" />
             <span className="truncate">{experience.venue_name}</span>
@@ -86,7 +97,7 @@ export function ExperienceCard({
                   key={pid}
                   className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-0.5 rounded-full"
                 >
-                  {profile.emoji} {profile.name.replace(/^(L'|Le |La )/, '')}
+                  {profile.emoji} {profile.name.replace(/^(L['']|Le |La )/, '')}
                 </span>
               )
             })}
