@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Calendar, Users, TrendingUp, FileText } from 'lucide-react'
+import { Plus, Calendar, Users, TrendingUp, FileText, Receipt } from 'lucide-react'
 import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
 import { formatPrice } from '@/lib/pricing'
 import type { PricingTier } from '@/types/experience'
@@ -250,7 +250,7 @@ export default async function OrganisateurPage() {
         )}
 
         {/* Appels d'offres */}
-        <section className="mb-6">
+        <section className="mb-4">
           <Link
             href="/organisateur/briefs"
             className="flex items-center justify-between bg-surface rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
@@ -260,6 +260,23 @@ export default async function OrganisateurPage() {
               <div>
                 <p className="font-display font-semibold text-text text-sm">Appels d&apos;offres</p>
                 <p className="text-text-muted text-xs">Recherchez un lieu ou un prestataire</p>
+              </div>
+            </div>
+            <span className="text-primary text-sm font-semibold shrink-0">Voir →</span>
+          </Link>
+        </section>
+
+        {/* Devis */}
+        <section className="mb-6">
+          <Link
+            href="/organisateur/devis"
+            className="flex items-center justify-between bg-surface rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center gap-3">
+              <Receipt className="w-5 h-5 text-text-muted" />
+              <div>
+                <p className="font-display font-semibold text-text text-sm">Devis</p>
+                <p className="text-text-muted text-xs">Composer et envoyer des devis multi-prestataires</p>
               </div>
             </div>
             <span className="text-primary text-sm font-semibold shrink-0">Voir →</span>

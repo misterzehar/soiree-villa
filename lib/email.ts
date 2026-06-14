@@ -276,6 +276,220 @@ export async function sendOfferRejectedEmail(data: OfferRejectedEmailData) {
   })
 }
 
+// ─── Phase 6 — Devis combinatoires ───────────────────────────
+
+type QuoteEmailData = {
+  to: string
+  clientName: string
+  organizerName: string
+  eventDate: string
+  totalCents: number
+  shareUrl: string
+  pdfBuffer: Buffer
+}
+
+export async function sendQuoteEmail(data: QuoteEmailData) {
+  const { to, clientName, organizerName, eventDate, totalCents, shareUrl, pdfBuffer } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const dateFmt = new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const totalFmt = `${Math.round(totalCents / 100)} €`
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: `Votre devis Soirée Villa — ${dateFmt}`,
+    attachments: [{ filename: 'Devis_SoireeVilla.pdf', content: pdfBuffer }],
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#4A6CF7,#A259FF);padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:20px;font-weight:700;color:#FFFFFF;">Votre devis est arrivé</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${clientName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;"><strong>${organizerName}</strong> vous a préparé un devis pour votre événement du <strong>${dateFmt}</strong>.</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5FA;border-radius:12px;margin-bottom:24px;">
+            <tr><td style="padding:16px 20px;text-align:center;">
+              <p style="margin:0 0 4px;font-size:11px;color:#6B6B7A;text-transform:uppercase;letter-spacing:1px;">Total TTC</p>
+              <p style="margin:0;font-size:28px;font-weight:700;color:#4A6CF7;">${totalFmt}</p>
+            </td></tr>
+          </table>
+          <p style="margin:0 0 20px;font-size:13px;color:#6B6B7A;">Le devis complet est joint en pièce jointe (PDF). Vous pouvez également le consulter et l'accepter en ligne :</p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center">
+              <a href="${shareUrl}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:12px;">
+                Voir et accepter le devis →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
+type QuoteAcceptedEmailData = {
+  to: string
+  organizerName: string
+  clientName: string
+  eventDate: string
+  totalCents: number
+  quoteId: string
+}
+
+export async function sendQuoteAcceptedEmail(data: QuoteAcceptedEmailData) {
+  const { to, organizerName, clientName, eventDate, totalCents, quoteId } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const dateFmt = new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: `Devis accepté par ${clientName} — ${dateFmt} 🎉`,
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#4A6CF7,#A259FF);padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:20px;font-weight:700;color:#FFFFFF;">Devis accepté ✓</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${organizerName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;"><strong>${clientName}</strong> vient d'accepter votre devis de <strong style="color:#4A6CF7;">${Math.round(totalCents / 100)} €</strong> pour le <strong>${dateFmt}</strong>.</p>
+          <p style="margin:0 0 20px;font-size:13px;color:#6B6B7A;">Les prestataires concernés ont été notifiés par email.</p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center">
+              <a href="${baseUrl}/organisateur/devis/${quoteId}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:12px;">
+                Voir le devis →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
+type ContractConfirmedEmailData = {
+  to: string
+  recipientName: string
+  clientName: string
+  eventDate: string
+  amountCents: number
+  platformFeeCents: number
+}
+
+export async function sendContractConfirmedEmail(data: ContractConfirmedEmailData) {
+  const { to, recipientName, clientName, eventDate, amountCents, platformFeeCents } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const dateFmt = new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const netCents = amountCents - platformFeeCents
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: `Contrat confirmé — soirée du ${dateFmt} 🎉`,
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#4A6CF7,#A259FF);padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:20px;font-weight:700;color:#FFFFFF;">Votre prestation est confirmée ✓</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${recipientName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;"><strong>${clientName}</strong> a accepté le devis vous incluant pour la soirée du <strong>${dateFmt}</strong>.</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5FA;border-radius:12px;margin-bottom:24px;">
+            <tr><td style="padding:16px 20px;">
+              <p style="margin:0 0 8px;font-size:12px;color:#6B6B7A;text-transform:uppercase;letter-spacing:1px;">Montant</p>
+              <p style="margin:0 0 4px;font-size:24px;font-weight:700;color:#4A6CF7;">${Math.round(amountCents / 100)} €</p>
+              <p style="margin:0;font-size:12px;color:#6B6B7A;">Commission Soirée Villa (15%) : ${Math.round(platformFeeCents / 100)} € · Net reversé : ${Math.round(netCents / 100)} €</p>
+            </td></tr>
+          </table>
+          <p style="margin:0;font-size:13px;color:#6B6B7A;">L'équipe Soirée Villa vous contactera pour les modalités de paiement et de reversement.</p>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
+type QuoteRejectedEmailData = {
+  to: string
+  organizerName: string
+  clientName: string
+  eventDate: string
+  quoteId: string
+}
+
+export async function sendQuoteRejectedEmail(data: QuoteRejectedEmailData) {
+  const { to, organizerName, clientName, eventDate, quoteId } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const dateFmt = new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: `Devis refusé par ${clientName} — ${dateFmt}`,
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:#F5F5FA;padding:24px 32px;text-align:center;border-bottom:1px solid #E5E5F0;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:#6B6B7A;letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:18px;font-weight:700;color:#1A1A2E;">Devis refusé</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${organizerName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;line-height:1.6;"><strong>${clientName}</strong> a décliné votre devis pour l'événement du ${dateFmt}.</p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center">
+              <a href="${baseUrl}/organisateur/devis/${quoteId}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:12px;">
+                Voir le devis →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
 // ─────────────────────────────────────────────────────────────
 
 type ConfirmationEmailData = {
