@@ -44,14 +44,15 @@ export async function createFournisseurProfile(formData: FormData): Promise<{ er
     name,
     slug,
     category,
-    city:               formData.get('city')?.toString().trim() || 'Nice',
-    description:        formData.get('description')?.toString().trim() || null,
-    photo_url:          formData.get('photo_url')?.toString().trim() || null,
-    price_range:        formData.get('price_range')?.toString().trim() || null,
-    website_url:        formData.get('website_url')?.toString().trim() || null,
+    city:                 formData.get('city')?.toString().trim() || 'Nice',
+    description:          formData.get('description')?.toString().trim() || null,
+    photo_url:            formData.get('photo_url')?.toString().trim() || null,
+    price_range:          formData.get('price_range')?.toString().trim() || null,
+    website_url:          formData.get('website_url')?.toString().trim() || null,
     axes_scores,
-    is_approved:        false,
-    claimed_by_user_id: user.id,
+    is_approved:          false,
+    claimed_by_user_id:   user.id,
+    charter_accepted_at:  new Date().toISOString(),
   })
 
   if (dbError) return { error: dbError.message }

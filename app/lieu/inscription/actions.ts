@@ -37,16 +37,17 @@ export async function createLieuProfile(formData: FormData): Promise<{ error: st
   const { error: dbError } = await supabase.from('lieux').insert({
     name,
     slug,
-    address:            formData.get('address')?.toString().trim() || null,
-    city:               formData.get('city')?.toString().trim() || 'Nice',
-    capacity:           formData.get('capacity') ? parseInt(formData.get('capacity')!.toString()) : null,
-    ambiance:           formData.get('ambiance')?.toString().trim() || null,
-    lieu_type:          formData.get('lieu_type')?.toString() || 'salle',
-    photo_url:          formData.get('photo_url')?.toString().trim() || null,
-    website_url:        formData.get('website_url')?.toString().trim() || null,
+    address:              formData.get('address')?.toString().trim() || null,
+    city:                 formData.get('city')?.toString().trim() || 'Nice',
+    capacity:             formData.get('capacity') ? parseInt(formData.get('capacity')!.toString()) : null,
+    ambiance:             formData.get('ambiance')?.toString().trim() || null,
+    lieu_type:            formData.get('lieu_type')?.toString() || 'salle',
+    photo_url:            formData.get('photo_url')?.toString().trim() || null,
+    website_url:          formData.get('website_url')?.toString().trim() || null,
     axes_scores,
-    is_approved:        false,
-    claimed_by_user_id: user.id,
+    is_approved:          false,
+    claimed_by_user_id:   user.id,
+    charter_accepted_at:  new Date().toISOString(),
   })
 
   if (dbError) return { error: dbError.message }

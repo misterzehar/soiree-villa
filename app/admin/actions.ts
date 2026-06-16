@@ -63,3 +63,36 @@ export async function rejectFournisseur(formData: FormData): Promise<void> {
   await supabase.from('fournisseurs').delete().eq('id', fournisseurId)
   revalidatePath('/admin')
 }
+
+export async function setObsessionOfWeek(formData: FormData): Promise<void> {
+  await verifyAdmin(formData.get('adminToken')?.toString())
+
+  const experienceId = formData.get('experienceId')?.toString()
+  if (!experienceId) throw new Error('ID expérience manquant.')
+
+  const supabase = createServerSupabase()
+  // Clear any existing obsession first
+  await supabase
+    .from('experiences')
+    .update({ is_obsession_of_week: false })
+    .eq('is_obsession_of_week', true)
+  // Set new obsession
+  await supabase
+    .from('experiences')
+    .update({ is_obsession_of_week: true })
+    .eq('id', experienceId)
+  revalidatePath('/admin')
+  revalidatePath('/experiences')
+}
+
+export async function clearObsessionOfWeek(formData: FormData): Promise<void> {
+  await verifyAdmin(formData.get('adminToken')?.toString())
+
+  const supabase = createServerSupabase()
+  await supabase
+    .from('experiences')
+    .update({ is_obsession_of_week: false })
+    .eq('is_obsession_of_week', true)
+  revalidatePath('/admin')
+  revalidatePath('/experiences')
+}

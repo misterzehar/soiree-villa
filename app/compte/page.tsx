@@ -9,6 +9,7 @@ import { matchScore, deriveExperienceAxes } from '@/lib/matching'
 import type { ProfileId, AxesTarget } from '@/constants/profiles'
 import type { Experience } from '@/types/experience'
 import { signOut } from '@/app/auth/actions'
+import { BADGES } from '@/lib/badges'
 
 type Registration = {
   id: string
@@ -122,6 +123,13 @@ export default async function ComptePage() {
 
   const upcomingList = (upcoming ?? []) as unknown as Registration[]
   const pastList     = (past ?? []) as unknown as Registration[]
+
+  // Badges earned
+  const { data: badgesEarned } = await serviceSupabase
+    .from('badges_earned')
+    .select('badge_id')
+    .eq('user_id', user.id)
+  const earnedIds = new Set((badgesEarned ?? []).map(b => b.badge_id))
 
   // Unread message badges
   const expIds = upcomingList.filter(r => r.experiences).map(r => r.experiences!.id)
@@ -326,6 +334,33 @@ export default async function ComptePage() {
               ))}
             </div>
           )}
+        </section>
+
+        {/* Badges */}
+        <section className="mb-6">
+          <h2 className="font-display font-semibold text-lg text-text mb-3">
+            Mes badges
+          </h2>
+          <div className="grid grid-cols-3 gap-3">
+            {BADGES.map(badge => {
+              const earned = earnedIds.has(badge.id)
+              return (
+                <div
+                  key={badge.id}
+                  className={`bg-surface rounded-2xl p-4 flex flex-col items-center gap-1 text-center transition-opacity ${earned ? 'opacity-100 shadow-sm' : 'opacity-40'}`}
+                >
+                  <span className="text-3xl">{badge.emoji}</span>
+                  <p className="font-display font-semibold text-text text-xs leading-snug">{badge.label}</p>
+                  {earned && (
+                    <p className="text-text-muted text-[10px] leading-snug">{badge.desc}</p>
+                  )}
+                  {!earned && (
+                    <p className="text-text-muted text-[10px]">À débloquer</p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         </section>
 
         {/* Historique */}

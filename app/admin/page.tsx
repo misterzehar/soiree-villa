@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase'
 import { checkAdminAccess } from './_lib/auth'
-import { publishExperience } from './actions'
+import { publishExperience, setObsessionOfWeek, clearObsessionOfWeek } from './actions'
 import { saveAdminNotes } from './notes/actions'
 
 export const dynamic = 'force-dynamic'
@@ -103,6 +103,8 @@ export default async function AdminPage({
     { data: publishedExpsRaw },
     { data: registrationsRaw },
     { data: notesRow },
+    { data: npsScoresRaw },
+    { data: publishedExpsForObsession },
   ] = await Promise.all([
     supabase.from('contact_requests').select('id', { count: 'exact', head: true }).eq('is_read', false).eq('is_archived', false),
     supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('status', 'open'),
@@ -140,6 +142,11 @@ export default async function AdminPage({
       .select('content')
       .eq('id', '00000000-0000-0000-0000-000000000001')
       .maybeSingle(),
+    supabase.from('nps_responses').select('score'),
+    supabase.from('experiences')
+      .select('id, title, is_obsession_of_week')
+      .eq('status', 'published')
+      .order('date', { ascending: true }),
   ])
 
   // --- Derived stats ---
@@ -177,6 +184,19 @@ export default async function AdminPage({
   const top5Orgs = Object.entries(orgRevMap).sort((a, b) => b[1] - a[1]).slice(0, 5)
 
   const notesContent = (notesRow as { content: string } | null)?.content ?? ''
+
+  // NPS score computation
+  const npsScores = (npsScoresRaw ?? []) as { score: number }[]
+  const npsTotal  = npsScores.length
+  const npsScore  = npsTotal === 0 ? null : (() => {
+    const promoters  = npsScores.filter(r => r.score >= 9).length
+    const detractors = npsScores.filter(r => r.score <= 6).length
+    return Math.round((promoters - detractors) / npsTotal * 100)
+  })()
+
+  type ObsessionExp = { id: string; title: string; is_obsession_of_week: boolean }
+  const obsessionExps   = (publishedExpsForObsession ?? []) as ObsessionExp[]
+  const currentObsession = obsessionExps.find(e => e.is_obsession_of_week)
 
   const q    = token ? `?token=${token}` : ''
   const qAnd = token ? `?token=${token}&` : '?'
@@ -424,9 +444,11 @@ export default async function AdminPage({
               </p>
             </div>
             <div className="bg-surface border border-border rounded-2xl p-5">
-              <p className="text-text-muted text-xs mb-1">NPS moyen</p>
-              <p className="font-display font-bold text-2xl text-text-muted">—</p>
-              <p className="text-text-muted text-xs mt-1">Sondages post-soirée (V1.5)</p>
+              <p className="text-text-muted text-xs mb-1">NPS (% promoteurs − détracteurs)</p>
+              <p className={`font-display font-bold text-2xl ${npsScore === null ? 'text-text-muted' : npsScore >= 50 ? 'text-success' : npsScore >= 0 ? 'text-warning' : 'text-error'}`}>
+                {npsScore === null ? '—' : `${npsScore > 0 ? '+' : ''}${npsScore}`}
+              </p>
+              <p className="text-text-muted text-xs mt-1">{npsTotal} réponse{npsTotal !== 1 ? 's' : ''} · ≥9 promoteur · ≤6 détracteur</p>
             </div>
             <div className="bg-surface border border-border rounded-2xl p-5">
               <p className="text-text-muted text-xs mb-1">Coût d&apos;acquisition (CAC)</p>
@@ -587,6 +609,50 @@ export default async function AdminPage({
           <h2 className="font-display font-bold text-base text-text mb-0.5">A — Agir</h2>
           <p className="text-text-muted text-xs mb-5">Modération · exports · outils</p>
 
+          {/* Obsession de la semaine */}
+          <div className="bg-surface border border-border rounded-2xl p-5 mb-6">
+            <h3 className="font-display font-semibold text-sm text-text mb-1">⭐ Obsession de la semaine</h3>
+            <p className="text-text-muted text-xs mb-4">
+              {currentObsession
+                ? `Actuellement : ${currentObsession.title}`
+                : 'Aucune expérience mise en avant.'}
+            </p>
+            <form action={setObsessionOfWeek} className="flex gap-2 items-end">
+              <input type="hidden" name="adminToken" value={token ?? ''} />
+              <div className="flex-1">
+                <select
+                  name="experienceId"
+                  required
+                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm text-text bg-bg focus:outline-none focus:border-primary transition-colors"
+                >
+                  <option value="">Choisir une expérience…</option>
+                  {obsessionExps.map(e => (
+                    <option key={e.id} value={e.id} selected={e.is_obsession_of_week}>
+                      {e.title}{e.is_obsession_of_week ? ' ⭐' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="px-4 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/90 transition-colors shrink-0"
+              >
+                Définir
+              </button>
+              {currentObsession && (
+                <form action={clearObsessionOfWeek}>
+                  <input type="hidden" name="adminToken" value={token ?? ''} />
+                  <button
+                    type="submit"
+                    className="px-4 py-2.5 border border-border text-text-muted text-sm rounded-xl hover:text-text transition-colors shrink-0"
+                  >
+                    Effacer
+                  </button>
+                </form>
+              )}
+            </form>
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               {
@@ -703,10 +769,19 @@ export default async function AdminPage({
                 })}
                 <div>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-text-muted">NPS moyen ≥ 7</span>
-                    <span className="text-text-muted">— V1.5 sondages</span>
+                    <span className="text-text-muted">NPS ≥ 50</span>
+                    <span className={npsScore === null ? 'text-text-muted' : npsScore >= 50 ? 'text-success font-semibold' : 'text-text-muted'}>
+                      {npsScore === null ? `— (${npsTotal} réponse${npsTotal !== 1 ? 's' : ''})` : `${npsScore > 0 ? '+' : ''}${npsScore}/100`}
+                    </span>
                   </div>
-                  <div className="h-1.5 bg-border rounded-full" />
+                  <div className="h-1.5 bg-border rounded-full overflow-hidden">
+                    {npsScore !== null && (
+                      <div
+                        className={`h-full rounded-full transition-all ${npsScore >= 50 ? 'bg-success' : 'bg-warning'}`}
+                        style={{ width: `${Math.max(0, Math.min(100, npsScore + 100) / 2)}%` }}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -720,7 +795,7 @@ export default async function AdminPage({
                   'IA générative pour recommandations',
                   'Multi-langue (FR / EN)',
                   'TOTP / 2FA pour accès admin',
-                  'NPS automatisé post-soirée',
+                  'Tier List participante (gamification avancée)',
                   'Communications de masse (newsletters)',
                 ].map(item => (
                   <li key={item} className="flex items-center gap-2.5 text-sm text-text-muted">

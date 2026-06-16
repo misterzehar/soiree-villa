@@ -39,6 +39,7 @@ export async function createOrganizerProfile(
     city,
     commission_rate: 0.15,
     is_approved: false,
+    charter_accepted_at: new Date().toISOString(),
   })
 
   if (error) return { error: 'Erreur lors de la création du profil.' }

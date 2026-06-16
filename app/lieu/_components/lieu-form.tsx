@@ -148,6 +148,30 @@ export function LieuForm({ action, initialData, showName = false, submitLabel = 
         })}
       </div>
 
+      {/* Charter — uniquement à la création */}
+      {showName && (
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            name="charterAccepted"
+            required
+            className="mt-0.5 accent-primary shrink-0 w-4 h-4"
+          />
+          <span className="text-text-muted text-sm leading-relaxed">
+            J&apos;ai lu et j&apos;accepte la{' '}
+            <a
+              href="/charte-lieu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline"
+            >
+              charte lieu
+            </a>
+            {' '}de Soirée Villa.
+          </span>
+        </label>
+      )}
+
       {error && (
         <p className="text-error text-sm bg-error/5 border border-error/20 rounded-xl px-4 py-3">
           {error}

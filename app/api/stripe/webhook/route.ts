@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createServerSupabase } from '@/lib/supabase'
 import { sendConfirmationEmail } from '@/lib/email'
+import { checkAndAwardBadges } from '@/lib/badges'
 import type { Experience } from '@/types/experience'
 
 export async function POST(req: NextRequest) {
@@ -78,6 +79,15 @@ export async function POST(req: NextRequest) {
         experienceId: experience_id,
         stripeSessionId: session.id,
       })
+
+      // Look up user_id by email and award badges
+      try {
+        const { data: userList } = await supabase.auth.admin.listUsers()
+        const matchedUser = userList?.users?.find(u => u.email === reg.participant_email)
+        if (matchedUser) {
+          await checkAndAwardBadges(matchedUser.id, reg.participant_email, reg.tier_id, experience_id)
+        }
+      } catch { /* non-blocking */ }
     }
   }
 

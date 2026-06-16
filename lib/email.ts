@@ -594,6 +594,197 @@ export async function sendNewReviewNotification(data: NewReviewNotificationData)
   })
 }
 
+// ─── Phase 10 — Rappels + NPS ────────────────────────────────
+
+type ReminderType = 'j7' | 'j1' | 'j0'
+type OrganizerReminderType = 'j3' | 'j1'
+
+type ReminderEmailData = {
+  to: string
+  firstName: string
+  experienceTitle: string
+  experienceDate: string
+  venueName: string
+  type: ReminderType
+  experienceId: string
+}
+
+export async function sendReminderEmail(data: ReminderEmailData) {
+  const { to, firstName, experienceTitle, experienceDate, venueName, type, experienceId } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const expUrl = `${baseUrl}/experiences/${experienceId}`
+  const dateFmt = formatDate(experienceDate)
+
+  const subjects: Record<ReminderType, string> = {
+    j7: `J-7 — Ta soirée arrive bientôt : ${experienceTitle}`,
+    j1: `Demain c'est le jour ! — ${experienceTitle}`,
+    j0: `C'est aujourd'hui ! — ${experienceTitle}`,
+  }
+  const intros: Record<ReminderType, string> = {
+    j7: `Dans 7 jours, tu vis <strong>${experienceTitle}</strong>. On a hâte de t'y voir !`,
+    j1: `Demain, c'est <strong>${experienceTitle}</strong>. Tout est prêt ?`,
+    j0: `C'est aujourd'hui ! <strong>${experienceTitle}</strong> t'attend.`,
+  }
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: subjects[type],
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#4A6CF7,#A259FF);padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:20px;font-weight:700;color:#FFFFFF;">Rappel soirée</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${firstName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;">${intros[type]}</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5FA;border-radius:12px;margin-bottom:24px;">
+            <tr><td style="padding:16px 20px;">
+              <p style="margin:0 0 4px;font-size:11px;color:#6B6B7A;text-transform:uppercase;letter-spacing:1px;">Expérience</p>
+              <p style="margin:0 0 12px;font-size:16px;font-weight:700;color:#1A1A2E;">${experienceTitle}</p>
+              <p style="margin:0 0 4px;font-size:12px;color:#6B6B7A;">📅 ${dateFmt}</p>
+              <p style="margin:0;font-size:12px;color:#6B6B7A;">📍 ${venueName}</p>
+            </td></tr>
+          </table>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center">
+              <a href="${expUrl}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:12px;">
+                Voir les détails →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
+type OrganizerReminderEmailData = {
+  to: string
+  firstName: string
+  experienceTitle: string
+  experienceDate: string
+  type: OrganizerReminderType
+  experienceId: string
+}
+
+export async function sendOrganizerReminderEmail(data: OrganizerReminderEmailData) {
+  const { to, firstName, experienceTitle, experienceDate, type, experienceId } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const expUrl = `${baseUrl}/organisateur/experiences/${experienceId}`
+  const dateFmt = formatDate(experienceDate)
+
+  const subjects: Record<OrganizerReminderType, string> = {
+    j3: `J-3 — Prépare ta soirée : ${experienceTitle}`,
+    j1: `Demain tu animes : ${experienceTitle}`,
+  }
+  const tips: Record<OrganizerReminderType, string> = {
+    j3: 'Dans 3 jours, tu animes ta soirée. C\'est le bon moment pour envoyer un message de bienvenue à tes participants dans le chat !',
+    j1: 'Demain c\'est ton jour ! Prépare ta liste d\'inscrits, prévois ton check-in, et assure-toi que le lieu est confirmé.',
+  }
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: subjects[type],
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#4A6CF7,#A259FF);padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">Soirée Villa — Organisateur</p>
+          <h1 style="margin:0;font-size:20px;font-weight:700;color:#FFFFFF;">Rappel organisateur</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${firstName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;">${tips[type]}</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5FA;border-radius:12px;margin-bottom:24px;">
+            <tr><td style="padding:16px 20px;">
+              <p style="margin:0 0 4px;font-size:11px;color:#6B6B7A;text-transform:uppercase;letter-spacing:1px;">Ta soirée</p>
+              <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1A1A2E;">${experienceTitle}</p>
+              <p style="margin:0;font-size:12px;color:#6B6B7A;">📅 ${dateFmt}</p>
+            </td></tr>
+          </table>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center">
+              <a href="${expUrl}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:12px;">
+                Gérer ma soirée →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
+type NpsEmailData = {
+  to: string
+  firstName: string
+  experienceTitle: string
+  registrationId: string
+}
+
+export async function sendNpsEmail(data: NpsEmailData) {
+  const { to, firstName, experienceTitle, registrationId } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const npsUrl = `${baseUrl}/nps/${registrationId}`
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: `Comment s'est passé ${experienceTitle} ? (30 sec)`,
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#4A6CF7,#A259FF);padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:20px;font-weight:700;color:#FFFFFF;">Comment c'était ? 💛</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;text-align:center;">
+          <p style="margin:0 0 8px;font-size:15px;">Bonjour <strong>${firstName}</strong>,</p>
+          <p style="margin:0 0 24px;font-size:14px;color:#6B6B7A;line-height:1.6;">
+            J'espère que <strong>${experienceTitle}</strong> était à la hauteur de tes attentes.<br/>
+            30 secondes de retour nous aident vraiment à améliorer l'expérience pour tout le monde.
+          </p>
+          <a href="${npsUrl}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:14px;">
+            Donner mon avis →
+          </a>
+          <p style="margin:20px 0 0;font-size:11px;color:#6B6B7A;">Lien unique, anonyme. Ça prend 30 secondes.</p>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
 // ─────────────────────────────────────────────────────────────
 
 type ConfirmationEmailData = {

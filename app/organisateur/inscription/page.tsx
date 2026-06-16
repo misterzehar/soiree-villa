@@ -135,6 +135,28 @@ export default function OrganisateurInscriptionPage() {
             Tu seras notifié par email.
           </p>
 
+          {/* Charter */}
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              name="charterAccepted"
+              required
+              className="mt-0.5 accent-primary shrink-0 w-4 h-4"
+            />
+            <span className="text-text-muted text-sm leading-relaxed">
+              J&apos;ai lu et j&apos;accepte la{' '}
+              <a
+                href="/charte-organisateur"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline"
+              >
+                charte organisateur
+              </a>
+              {' '}de Soirée Villa.
+            </span>
+          </label>
+
           <button
             type="submit"
             disabled={isPending}
