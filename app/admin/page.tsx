@@ -18,7 +18,12 @@ type RegistrationRow = {
   platform_fee_cents: number | null
   stripe_session_id: string | null
   created_at: string
-  experiences: { title: string; date: string } | null
+  experiences: { title: string; date: string } | { title: string; date: string }[] | null
+}
+
+function firstExp<T>(e: T | T[] | null | undefined): T | null {
+  if (!e) return null
+  return Array.isArray(e) ? (e[0] ?? null) : e
 }
 
 type DraftExp = {
@@ -44,7 +49,7 @@ type UpcomingExp = {
 type PaidReg = {
   amount_paid_cents: number | null
   platform_fee_cents: number | null
-  experiences: { title: string; organizer_name: string } | null
+  experiences: { title: string; organizer_name: string } | { title: string; organizer_name: string }[] | null
 }
 
 function fmt(d: string) {
@@ -161,7 +166,7 @@ export default async function AdminPage({
   const expRevMap: Record<string, { title: string; rev: number }> = {}
   const orgRevMap: Record<string, number> = {}
   for (const r of allPaidRegs) {
-    const exp   = r.experiences as { title: string; organizer_name: string } | null
+    const exp   = firstExp(r.experiences)
     const title = exp?.title ?? 'Sans titre'
     const org   = exp?.organizer_name ?? 'Inconnu'
     if (!expRevMap[title]) expRevMap[title] = { title, rev: 0 }
@@ -528,13 +533,15 @@ export default async function AdminPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {registrations.map(r => (
+                    {registrations.map(r => {
+                      const exp = firstExp(r.experiences)
+                      return (
                       <tr key={r.id} className="border-b border-border/50 hover:bg-bg/50 transition-colors">
                         <td className="py-2.5 px-4 font-medium text-text max-w-[160px] truncate">
-                          {r.experiences?.title ?? '—'}
+                          {exp?.title ?? '—'}
                         </td>
                         <td className="py-2.5 px-4 text-text-muted text-xs whitespace-nowrap">
-                          {r.experiences?.date ? fmtDT(r.experiences.date) : '—'}
+                          {exp?.date ? fmtDT(exp.date) : '—'}
                         </td>
                         <td className="py-2.5 px-4 text-text whitespace-nowrap">
                           {r.participant_first_name} {r.participant_last_name}
@@ -566,7 +573,8 @@ export default async function AdminPage({
                           {fmtDT(r.created_at)}
                         </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
