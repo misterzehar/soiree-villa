@@ -34,8 +34,17 @@ function formatDate(s: string) {
   return new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-export default async function LieuFichePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function LieuFichePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ contact?: string; review?: string }>
+}) {
   const { slug } = await params
+  const { contact, review } = await searchParams
+  const showContactBanner = contact === 'sent'
+  const showReviewBanner  = review === 'sent'
   const supabase = createServerSupabase()
 
   const [{ data: lieuData }, authClient] = await Promise.all([
@@ -72,6 +81,17 @@ export default async function LieuFichePage({ params }: { params: Promise<{ slug
           <ArrowLeft className="w-4 h-4" />
           Tous les lieux
         </Link>
+
+        {showContactBanner && (
+          <div className="mb-4 bg-success/10 border border-success/30 text-success rounded-xl px-4 py-3 text-sm font-medium text-center">
+            ✓ Demande envoyée — réponse sous 48h maximum.
+          </div>
+        )}
+        {showReviewBanner && (
+          <div className="mb-4 bg-success/10 border border-success/30 text-success rounded-xl px-4 py-3 text-sm font-medium text-center">
+            ✓ Avis envoyé — il apparaîtra après modération.
+          </div>
+        )}
 
         {lieu.photo_url && (
           <img

@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
 import { sendContactRequestEmail, sendNewReviewNotification } from '@/lib/email'
 
@@ -45,6 +46,7 @@ export async function submitReview(formData: FormData) {
   } catch {}
 
   revalidatePath(`/fournisseurs/${slug}`)
+  redirect(`/fournisseurs/${slug}?review=sent`)
 }
 
 export async function submitContactRequest(formData: FormData) {
@@ -98,4 +100,5 @@ export async function submitContactRequest(formData: FormData) {
   } catch {}
 
   revalidatePath(`/fournisseurs/${slug}`)
+  redirect(`/fournisseurs/${slug}?contact=sent`)
 }
