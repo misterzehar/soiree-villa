@@ -24,15 +24,16 @@ export async function GET(req: NextRequest) {
   const { data, error } = await query
   if (error) return new NextResponse('Erreur DB', { status: 500 })
 
-  const rows = (data ?? []) as {
+  type Row = {
     created_at: string
     participant_email: string
     amount_paid_cents: number | null
     platform_fee_cents: number | null
     stripe_session_id: string | null
     payment_status: string
-    experiences: { title: string } | null
-  }[]
+    experiences: { title: string } | { title: string }[] | null
+  }
+  const rows = (data ?? []) as unknown as Row[]
 
   const header = 'date,experience,participant_email,montant_brut_eur,commission_15pct_eur,montant_net_eur,stripe_session_id,status'
 
@@ -40,7 +41,8 @@ export async function GET(req: NextRequest) {
     const brut = (r.amount_paid_cents  ?? 0) / 100
     const comm = (r.platform_fee_cents ?? 0) / 100
     const net  = brut - comm
-    const title = (r.experiences?.title ?? '').replace(/"/g, '""')
+    const exp = Array.isArray(r.experiences) ? r.experiences[0] : r.experiences
+    const title = (exp?.title ?? '').replace(/"/g, '""')
     return [
       new Date(r.created_at).toISOString().slice(0, 10),
       `"${title}"`,
