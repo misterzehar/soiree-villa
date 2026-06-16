@@ -241,4 +241,18 @@ export default async function MarketplacePage({
                     </span>
                     {item.reviewCount > 0 && (
                       <span className="flex items-center gap-1 text-text-muted text-xs">
-                        <Star class
+                        <Star className="w-3 h-3 fill-warning text-warning" />
+                        {item.avgRating} ({item.reviewCount})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+      </div>
+    </main>
+  )
+}
