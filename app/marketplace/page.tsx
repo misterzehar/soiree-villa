@@ -75,10 +75,18 @@ export default async function MarketplacePage({
 
   const items: MarketplaceItem[] = []
 
-  function toAxesTarget(axesScores: Record<string, number>): AxesTarget {
-    return Object.fromEntries(
-      Object.entries(axesScores).map(([k, v]) => [k, v > 0 ? 1 : v < 0 ? -1 : 0])
-    ) as AxesTarget
+  function toAxesTarget(axesScores: Record<string, number> | null | undefined): AxesTarget {
+    const safe = axesScores ?? {}
+    const clamp = (v: number | undefined): -1 | 0 | 1 =>
+      v === undefined || v === null ? 0 : v > 0 ? 1 : v < 0 ? -1 : 0
+    return {
+      energy:     clamp(safe.energy),
+      structure:  clamp(safe.structure),
+      depth:      clamp(safe.depth),
+      sociality:  clamp(safe.sociality),
+      cerebrale:  clamp(safe.cerebrale),
+      creativite: clamp(safe.creativite),
+    }
   }
 
   if (type !== 'fournisseur') {
@@ -233,18 +241,4 @@ export default async function MarketplacePage({
                     </span>
                     {item.reviewCount > 0 && (
                       <span className="flex items-center gap-1 text-text-muted text-xs">
-                        <Star className="w-3 h-3 fill-warning text-warning" />
-                        {item.avgRating} ({item.reviewCount})
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-
-      </div>
-    </main>
-  )
-}
+                        <Star class
