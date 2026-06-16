@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase'
+import { checkAdminAccess } from '../_lib/auth'
 import { QUESTIONS } from '@/constants/onboarding-questions'
 import { PROFILES } from '@/constants/profiles'
 import { matchScore } from '@/lib/matching'
@@ -75,7 +76,8 @@ export default async function AdminMatchingPage({
 }) {
   const { token } = await searchParams
 
-  if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) {
+  const isAdmin = await checkAdminAccess(token)
+  if (!isAdmin) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-bg">
         <p className="text-text-muted text-sm">403 — Accès refusé.</p>
@@ -143,7 +145,7 @@ export default async function AdminMatchingPage({
     }
   }
 
-  const baseUrl = `/admin/matching?token=${token}`
+  const backHref = token ? `/admin?token=${token}` : '/admin'
 
   return (
     <main className="min-h-screen bg-bg p-6">
@@ -153,7 +155,7 @@ export default async function AdminMatchingPage({
         <div className="flex items-center justify-between mb-6">
           <div>
             <Link
-              href={`/admin?token=${token}`}
+              href={backHref}
               className="text-text-muted text-xs hover:text-text transition-colors"
             >
               ← Admin

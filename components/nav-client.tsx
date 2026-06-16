@@ -9,6 +9,7 @@ export type NavLink = { href: string; label: string }
 export type NavClientProps = {
   variant: 'light' | 'dark'
   isConnected: boolean
+  isAdmin?: boolean
   espaces: NavLink[]
   inscriptions: NavLink[]
   publicLinks: NavLink[]
@@ -77,7 +78,7 @@ function Dropdown({
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
-export function NavClient({ variant, isConnected, espaces, inscriptions, publicLinks }: NavClientProps) {
+export function NavClient({ variant, isConnected, isAdmin, espaces, inscriptions, publicLinks }: NavClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const isDark = variant === 'dark'
@@ -117,6 +118,16 @@ export function NavClient({ variant, isConnected, espaces, inscriptions, publicL
 
     return (
       <>
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className={`text-xs font-bold px-2.5 py-1 rounded-full transition-colors ${
+              isDark ? 'bg-warning/20 text-warning hover:bg-warning/30' : 'bg-warning/10 text-warning hover:bg-warning/20'
+            }`}
+          >
+            🔧 Admin
+          </Link>
+        )}
         <Link href="/compte" className={textClass}>Mon compte</Link>
 
         {/* Espaces existants */}
@@ -216,6 +227,16 @@ export function NavClient({ variant, isConnected, espaces, inscriptions, publicL
                   >
                     Mon compte
                   </Link>
+
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setDrawerOpen(false)}
+                      className="text-warning text-sm font-bold px-3 py-2.5 rounded-xl hover:bg-warning/5 transition-colors"
+                    >
+                      🔧 Admin
+                    </Link>
+                  )}
 
                   {espaces.map(e => (
                     <Link

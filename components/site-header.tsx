@@ -4,6 +4,8 @@ import { getActorProfiles } from '@/lib/actors'
 import { NavClient } from './nav-client'
 import type { NavLink } from './nav-client'
 
+const ADMIN_EMAIL = 'misterzehar@gmail.com'
+
 type Props = {
   variant?: 'light' | 'dark'
   center?: React.ReactNode
@@ -18,6 +20,8 @@ const PUBLIC_NAV: NavLink[] = [
 export async function SiteHeader({ variant = 'light', center }: Props) {
   const authClient = await createSupabaseServerClient()
   const { data: { user } } = await authClient.auth.getUser()
+
+  const isAdmin = user?.email === ADMIN_EMAIL
 
   const espaces: NavLink[] = []
   const inscriptions: NavLink[] = []
@@ -63,6 +67,7 @@ export async function SiteHeader({ variant = 'light', center }: Props) {
       <NavClient
         variant={variant}
         isConnected={!!user}
+        isAdmin={isAdmin}
         espaces={espaces}
         inscriptions={inscriptions}
         publicLinks={PUBLIC_NAV}
