@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Users, ExternalLink } from 'lucide-react'
-import { createServerSupabase } from '@/lib/supabase'
+import { ArrowLeft, MapPin, Users, ExternalLink, Star } from 'lucide-react'
+import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
 import type { Lieu } from '@/types/lieu'
+import type { Review } from '@/types/review'
+import { submitReview, submitContactRequest } from './actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,20 +20,46 @@ const LIEU_TYPE_LABELS: Record<string, string> = {
   bar: 'Bar', restaurant: 'Restaurant', atelier: 'Atelier', autre: 'Autre',
 }
 
+function StarDisplay({ rating }: { rating: number }) {
+  return (
+    <span className="flex gap-0.5">
+      {[1,2,3,4,5].map(n => (
+        <Star key={n} className={`w-3.5 h-3.5 ${n <= rating ? 'fill-warning text-warning' : 'text-border'}`} />
+      ))}
+    </span>
+  )
+}
+
+function formatDate(s: string) {
+  return new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
 export default async function LieuFichePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const supabase = createServerSupabase()
 
-  const { data } = await supabase
-    .from('lieux')
+  const [{ data: lieuData }, authClient] = await Promise.all([
+    supabase.from('lieux').select('*').eq('slug', slug).eq('is_approved', true).single(),
+    createSupabaseServerClient(),
+  ])
+
+  if (!lieuData) notFound()
+  const lieu = lieuData as Lieu
+
+  const { data: { user } } = await authClient.auth.getUser()
+
+  const { data: reviewsData } = await supabase
+    .from('reviews')
     .select('*')
-    .eq('slug', slug)
-    .eq('is_approved', true)
-    .single()
+    .eq('target_type', 'lieu')
+    .eq('target_id', lieu.id)
+    .eq('is_published', true)
+    .order('created_at', { ascending: false })
 
-  if (!data) notFound()
-
-  const lieu = data as Lieu
+  const reviews = (reviewsData ?? []) as Review[]
+  const avgRating = reviews.length
+    ? Math.round(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length * 10) / 10
+    : null
 
   return (
     <main className="min-h-screen bg-bg">
@@ -60,7 +88,7 @@ export default async function LieuFichePage({ params }: { params: Promise<{ slug
           </span>
         </div>
 
-        <div className="flex flex-wrap gap-3 text-text-muted text-sm mb-4">
+        <div className="flex flex-wrap gap-3 text-text-muted text-sm mb-2">
           <span className="flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5" />
             {lieu.city}{lieu.address ? ` · ${lieu.address}` : ''}
@@ -73,11 +101,19 @@ export default async function LieuFichePage({ params }: { params: Promise<{ slug
           )}
         </div>
 
+        {avgRating !== null && (
+          <div className="flex items-center gap-2 mb-4">
+            <StarDisplay rating={Math.round(avgRating)} />
+            <span className="text-text font-semibold text-sm">{avgRating}</span>
+            <span className="text-text-muted text-xs">({reviews.length} avis)</span>
+          </div>
+        )}
+
         {lieu.ambiance && (
           <p className="text-text-muted text-sm italic mb-5">{lieu.ambiance}</p>
         )}
 
-        {/* Axes */}
+        {/* Profil axes */}
         <div className="bg-surface rounded-2xl p-5 shadow-sm mb-5">
           <h2 className="font-display font-semibold text-base text-text mb-4">Profil du lieu</h2>
           <div className="flex flex-col gap-3">
@@ -110,12 +146,120 @@ export default async function LieuFichePage({ params }: { params: Promise<{ slug
             href={lieu.website_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors mb-6"
           >
             <ExternalLink className="w-4 h-4" />
             Visiter le site
           </a>
         )}
+
+        {/* Formulaire de contact */}
+        <div className="bg-surface rounded-2xl p-5 shadow-sm mb-5">
+          <h2 className="font-display font-semibold text-base text-text mb-1">Demande de contact</h2>
+          <p className="text-text-muted text-xs mb-4">Intéressé par ce lieu ? Envoyez un message directement.</p>
+          <form action={submitContactRequest} className="flex flex-col gap-3">
+            <input type="hidden" name="lieuId" value={lieu.id} />
+            <input type="hidden" name="slug" value={slug} />
+            <input
+              type="text"
+              name="senderName"
+              required
+              placeholder="Votre nom"
+              defaultValue={user?.user_metadata?.first_name ? `${user.user_metadata.first_name} ${user.user_metadata.last_name ?? ''}`.trim() : ''}
+              className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-primary"
+            />
+            <input
+              type="email"
+              name="senderEmail"
+              required
+              placeholder="Votre email"
+              defaultValue={user?.email ?? ''}
+              className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-primary"
+            />
+            <textarea
+              name="message"
+              required
+              rows={4}
+              placeholder="Décrivez votre projet (date, nombre de personnes, type d'événement…)"
+              className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-primary resize-none"
+            />
+            <button
+              type="submit"
+              className="w-full bg-primary text-white font-semibold text-sm py-3 rounded-xl hover:bg-primary/90 transition-colors"
+            >
+              Envoyer la demande
+            </button>
+          </form>
+        </div>
+
+        {/* Avis */}
+        <div className="mb-2">
+          <h2 className="font-display font-semibold text-base text-text mb-3">
+            Avis ({reviews.length})
+          </h2>
+
+          {reviews.length === 0 ? (
+            <p className="text-text-muted text-sm mb-4">Pas encore d&apos;avis pour ce lieu.</p>
+          ) : (
+            <div className="flex flex-col gap-3 mb-4">
+              {reviews.map(r => (
+                <div key={r.id} className="bg-surface rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-sm text-text">{r.author_name}</span>
+                    <StarDisplay rating={r.rating} />
+                  </div>
+                  <p className="text-text-muted text-xs mb-1">{formatDate(r.created_at)}</p>
+                  {r.comment && <p className="text-text text-sm leading-relaxed">{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {user ? (
+            <details className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+              <summary className="px-5 py-4 cursor-pointer text-sm font-semibold text-primary list-none hover:bg-bg/50 transition-colors">
+                + Laisser un avis
+              </summary>
+              <form action={submitReview} className="px-5 pb-5 flex flex-col gap-3">
+                <input type="hidden" name="lieuId" value={lieu.id} />
+                <input type="hidden" name="slug" value={slug} />
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Note (1-5)</label>
+                  <select
+                    name="rating"
+                    required
+                    className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-sm text-text focus:outline-none focus:border-primary"
+                  >
+                    <option value="">Sélectionner…</option>
+                    <option value="5">★★★★★ — Excellent</option>
+                    <option value="4">★★★★☆ — Très bien</option>
+                    <option value="3">★★★☆☆ — Bien</option>
+                    <option value="2">★★☆☆☆ — Moyen</option>
+                    <option value="1">★☆☆☆☆ — Décevant</option>
+                  </select>
+                </div>
+                <textarea
+                  name="comment"
+                  rows={3}
+                  placeholder="Partagez votre expérience (optionnel)"
+                  className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-primary resize-none"
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-primary text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-primary/90 transition-colors"
+                >
+                  Soumettre l'avis
+                </button>
+                <p className="text-text-muted text-xs text-center">L&apos;avis sera publié après modération.</p>
+              </form>
+            </details>
+          ) : (
+            <p className="text-text-muted text-xs">
+              <Link href="/connexion" className="text-primary hover:underline">Connectez-vous</Link>{' '}
+              pour laisser un avis.
+            </p>
+          )}
+        </div>
 
       </div>
     </main>

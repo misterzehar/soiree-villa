@@ -101,13 +101,29 @@ export default async function LieuDashboardPage() {
         {/* Demandes reçues */}
         <Link
           href="/lieu/demandes"
-          className="block bg-surface rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+          className="block bg-surface rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow mb-3"
         >
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-display font-semibold text-base text-text mb-0.5">Demandes reçues</h3>
               <p className="text-text-muted text-sm">
                 Appels d&apos;offres d&apos;organisateurs pour votre ville.
+              </p>
+            </div>
+            <span className="text-primary text-sm font-semibold shrink-0">Voir →</span>
+          </div>
+        </Link>
+
+        {/* Demandes de contact */}
+        <Link
+          href="/lieu/demandes-contact"
+          className="block bg-surface rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-display font-semibold text-base text-text mb-0.5">Demandes de contact</h3>
+              <p className="text-text-muted text-sm">
+                Messages envoyés depuis la fiche publique de votre lieu.
               </p>
             </div>
             <span className="text-primary text-sm font-semibold shrink-0">Voir →</span>

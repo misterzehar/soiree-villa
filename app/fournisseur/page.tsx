@@ -96,13 +96,29 @@ export default async function FournisseurDashboardPage() {
         {/* Demandes reçues */}
         <Link
           href="/fournisseur/demandes"
-          className="block bg-surface rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+          className="block bg-surface rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow mb-3"
         >
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-display font-semibold text-base text-text mb-0.5">Demandes reçues</h3>
               <p className="text-text-muted text-sm">
                 Appels d&apos;offres d&apos;organisateurs pour votre catégorie.
+              </p>
+            </div>
+            <span className="text-primary text-sm font-semibold shrink-0">Voir →</span>
+          </div>
+        </Link>
+
+        {/* Demandes de contact */}
+        <Link
+          href="/fournisseur/demandes-contact"
+          className="block bg-surface rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-display font-semibold text-base text-text mb-0.5">Demandes de contact</h3>
+              <p className="text-text-muted text-sm">
+                Messages envoyés depuis la fiche publique de votre prestation.
               </p>
             </div>
             <span className="text-primary text-sm font-semibold shrink-0">Voir →</span>

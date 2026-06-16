@@ -490,6 +490,110 @@ export async function sendQuoteRejectedEmail(data: QuoteRejectedEmailData) {
   })
 }
 
+// ─── Phase 8 — Marketplace ────────────────────────────────────
+
+type ContactRequestEmailData = {
+  to: string
+  recipientName: string
+  senderName: string
+  senderEmail: string
+  message: string
+  targetName: string
+  targetType: 'lieu' | 'fournisseur'
+}
+
+export async function sendContactRequestEmail(data: ContactRequestEmailData) {
+  const { to, recipientName, senderName, senderEmail, message, targetName, targetType } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const inboxUrl = `${baseUrl}/${targetType}/demandes-contact`
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to,
+    subject: `Nouvelle demande de contact — ${targetName}`,
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:linear-gradient(135deg,#4A6CF7,#A259FF);padding:24px 32px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;">Soirée Villa</p>
+          <h1 style="margin:0;font-size:20px;font-weight:700;color:#FFFFFF;">Nouvelle demande de contact</h1>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 16px;font-size:15px;">Bonjour <strong>${recipientName}</strong>,</p>
+          <p style="margin:0 0 20px;font-size:14px;color:#6B6B7A;"><strong>${senderName}</strong> (${senderEmail}) a envoyé une demande de contact pour <strong>${targetName}</strong>&nbsp;:</p>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5FA;border-radius:12px;margin-bottom:24px;">
+            <tr><td style="padding:16px 20px;font-size:14px;color:#1A1A2E;line-height:1.6;border-left:3px solid #4A6CF7;">${message.slice(0, 500)}${message.length > 500 ? '…' : ''}</td></tr>
+          </table>
+          <p style="margin:0 0 20px;font-size:13px;color:#6B6B7A;">Répondez directement à <a href="mailto:${senderEmail}" style="color:#4A6CF7;">${senderEmail}</a> ou via votre espace prestataire.</p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center">
+              <a href="${inboxUrl}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:12px;">
+                Voir mes demandes →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="background:#F5F5FA;padding:16px 32px;text-align:center;">
+          <p style="margin:0;font-size:11px;color:#6B6B7A;">Soirée Villa · <a href="${baseUrl}" style="color:#4A6CF7;text-decoration:none;">soireevilla.fr</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
+type NewReviewNotificationData = {
+  authorName: string
+  targetName: string
+  targetType: 'lieu' | 'fournisseur'
+  rating: number
+  comment: string | null
+}
+
+export async function sendNewReviewNotification(data: NewReviewNotificationData) {
+  const { authorName, targetName, targetType, rating, comment } = data
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://soireevilla.fr'
+  const adminUrl = `${baseUrl}/admin/avis`
+  const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating)
+
+  await resend.emails.send({
+    from: 'Soirée Villa <noreply@soireevilla.fr>',
+    to: 'misterzehar@gmail.com',
+    subject: `Nouvel avis à modérer — ${targetName} (${stars})`,
+    html: `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background:#FAFAFA;font-family:Inter,Arial,sans-serif;color:#1A1A2E;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAFAFA;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:#F5F5FA;padding:20px 32px;text-align:center;border-bottom:1px solid #E5E5F0;">
+          <p style="margin:0;font-size:13px;font-weight:600;color:#6B6B7A;text-transform:uppercase;letter-spacing:2px;">Soirée Villa — Admin</p>
+        </td></tr>
+        <tr><td style="padding:28px 32px;">
+          <p style="margin:0 0 12px;font-size:15px;">Nouvel avis soumis par <strong>${authorName}</strong> pour le ${targetType} <strong>${targetName}</strong>.</p>
+          <p style="margin:0 0 16px;font-size:20px;color:#4A6CF7;">${stars}</p>
+          ${comment ? `<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5FA;border-radius:12px;margin-bottom:20px;"><tr><td style="padding:14px 18px;font-size:13px;color:#1A1A2E;line-height:1.6;border-left:3px solid #4A6CF7;">${comment}</td></tr></table>` : ''}
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center">
+              <a href="${adminUrl}" style="display:inline-block;background:#4A6CF7;color:#FFFFFF;font-size:14px;font-weight:600;text-decoration:none;padding:12px 28px;border-radius:12px;">
+                Modérer l'avis →
+              </a>
+            </td></tr>
+          </table>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>
+    `.trim(),
+  })
+}
+
 // ─────────────────────────────────────────────────────────────
 
 type ConfirmationEmailData = {
