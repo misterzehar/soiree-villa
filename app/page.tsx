@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Sparkles, User, Calendar } from "lucide-react";
+import { Sparkles, User, Calendar, MapPin } from "lucide-react";
 import { WaitlistForm } from "@/components/landing/waitlist-form";
 import { SiteHeader } from "@/components/site-header";
 import { createServerSupabase, createSupabaseServerClient } from "@/lib/supabase";
 import { getActorProfiles } from "@/lib/actors";
 import type { ActorProfiles } from "@/lib/actors";
+import type { PricingTier } from "@/types/experience";
 
 export const dynamic = 'force-dynamic'
 
@@ -78,16 +79,40 @@ const EXPERIENCES_PREVIEW = [
 export default async function HomePage() {
   const supabase = createServerSupabase()
 
-  // Compteurs publics
+  // Compteurs publics + obsession de la semaine
   const [
     { count: expCount },
     { count: lieuxCount },
     { count: fournisseursCount },
+    { data: obsessionRaw },
   ] = await Promise.all([
     supabase.from('experiences').select('*', { count: 'exact', head: true }).eq('status', 'published'),
     supabase.from('lieux').select('*', { count: 'exact', head: true }).eq('is_approved', true),
     supabase.from('fournisseurs').select('*', { count: 'exact', head: true }).eq('is_approved', true),
+    supabase
+      .from('experiences')
+      .select('id, title, description, date, venue_name, organizer_name, cover_image_url, pricing_tiers')
+      .eq('status', 'published')
+      .eq('is_obsession_of_week', true)
+      .single(),
   ])
+
+  type ObsessionExp = {
+    id: string
+    title: string
+    description: string
+    date: string
+    venue_name: string
+    organizer_name: string
+    cover_image_url: string | null
+    pricing_tiers: PricingTier[]
+  }
+  const obsession = obsessionRaw as ObsessionExp | null
+
+  // Tarif courant (premier tier avec des places — logique simplifiée pour landing)
+  function currentPrice(tiers: PricingTier[]): PricingTier | null {
+    return tiers.find(t => t.quantity > 0) ?? tiers[0] ?? null
+  }
 
   // Profils de l'utilisateur connecté (pour la section "Tu es un pro?")
   const authClient = await createSupabaseServerClient()
@@ -208,6 +233,87 @@ export default async function HomePage() {
           ↓
         </div>
       </section>
+
+      {/* ── OBSESSION DE LA SEMAINE ──────────────────────────────────────── */}
+      {obsession && (() => {
+        const tier = currentPrice(obsession.pricing_tiers)
+        const dateFmt = new Date(obsession.date).toLocaleDateString('fr-FR', {
+          weekday: 'long', day: 'numeric', month: 'long',
+        })
+        const shortDesc = obsession.description.length > 200
+          ? obsession.description.slice(0, 197) + '…'
+          : obsession.description
+
+        return (
+          <section className="px-6 py-12 md:px-12 md:py-16 bg-primary/5 border-y border-primary/10">
+            <div className="max-w-4xl mx-auto">
+
+              {/* Badge */}
+              <div className="flex justify-center mb-6">
+                <span className="inline-flex items-center gap-1.5 bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wide shadow-sm">
+                  ⭐ Obsession de la semaine
+                </span>
+              </div>
+
+              <div className="bg-surface rounded-3xl overflow-hidden shadow-md border border-primary/10">
+
+                {/* Cover image */}
+                {obsession.cover_image_url && (
+                  <div className="relative w-full aspect-[16/7] overflow-hidden">
+                    <img
+                      src={obsession.cover_image_url}
+                      alt={obsession.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-text/40 to-transparent" />
+                  </div>
+                )}
+
+                {/* Content */}
+                <div className="p-6 md:p-8">
+                  <h2 className="font-display font-bold text-2xl md:text-3xl text-text mb-3 leading-tight">
+                    {obsession.title}
+                  </h2>
+
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-4">
+                    <span className="flex items-center gap-1.5 text-text-muted text-sm capitalize">
+                      <Calendar className="w-4 h-4 shrink-0 text-primary" />
+                      {dateFmt}
+                    </span>
+                    <span className="flex items-center gap-1.5 text-text-muted text-sm">
+                      <MapPin className="w-4 h-4 shrink-0 text-primary" />
+                      {obsession.venue_name}
+                    </span>
+                    <span className="text-text-muted text-sm">
+                      par <span className="font-medium text-text">{obsession.organizer_name}</span>
+                    </span>
+                  </div>
+
+                  <p className="text-text-muted text-sm leading-relaxed mb-6">{shortDesc}</p>
+
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    {tier && (
+                      <div>
+                        <p className="text-text-muted text-xs mb-0.5">{tier.label}</p>
+                        <p className="font-display font-bold text-2xl text-primary">
+                          {Math.round(tier.price_cents / 100)} €
+                        </p>
+                      </div>
+                    )}
+                    <Link
+                      href={`/experiences/${obsession.id}`}
+                      className="inline-flex items-center gap-2 bg-primary text-white font-semibold text-base px-7 py-3.5 rounded-full shadow hover:shadow-md hover:scale-[1.02] transition-all duration-150"
+                    >
+                      Je participe →
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+        )
+      })()}
 
       {/* ── EXPLORER ─────────────────────────────────────────────────────── */}
       <section className="px-6 py-14 md:px-12 md:py-20 max-w-4xl mx-auto">
