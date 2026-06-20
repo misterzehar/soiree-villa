@@ -105,6 +105,7 @@ export default async function AdminPage({
     { data: notesRow },
     { data: npsScoresRaw },
     { data: publishedExpsForObsession },
+    { data: npsDetailRaw },
   ] = await Promise.all([
     supabase.from('contact_requests').select('id', { count: 'exact', head: true }).eq('is_read', false).eq('is_archived', false),
     supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('status', 'open'),
@@ -147,6 +148,11 @@ export default async function AdminPage({
       .select('id, title, is_obsession_of_week')
       .eq('status', 'published')
       .order('date', { ascending: true }),
+    supabase
+      .from('nps_responses')
+      .select('id, score, comment, created_at, registrations(experience_id, experiences(title))')
+      .order('created_at', { ascending: false })
+      .limit(10),
   ])
 
   // --- Derived stats ---
@@ -197,6 +203,35 @@ export default async function AdminPage({
   type ObsessionExp = { id: string; title: string; is_obsession_of_week: boolean }
   const obsessionExps   = (publishedExpsForObsession ?? []) as ObsessionExp[]
   const currentObsession = obsessionExps.find(e => e.is_obsession_of_week)
+
+  type NpsDetailRow = {
+    id: string
+    score: number
+    comment: string | null
+    created_at: string
+    registrations: {
+      experience_id: string
+      experiences: { title: string } | { title: string }[] | null
+    } | {
+      experience_id: string
+      experiences: { title: string } | { title: string }[] | null
+    }[] | null
+  }
+  const npsDetail = (npsDetailRaw ?? []) as NpsDetailRow[]
+
+  function npsCategory(score: number): { label: string; color: string } {
+    if (score >= 9) return { label: 'Promoteur',  color: 'text-success' }
+    if (score >= 7) return { label: 'Passif',     color: 'text-warning' }
+    return              { label: 'Détracteur', color: 'text-error'   }
+  }
+
+  function relativeDate(iso: string): string {
+    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+    if (diff < 60)   return 'à l\'instant'
+    if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`
+    if (diff < 86400) return `il y a ${Math.floor(diff / 3600)} h`
+    return `il y a ${Math.floor(diff / 86400)} jour${Math.floor(diff / 86400) > 1 ? 's' : ''}`
+  }
 
   const q    = token ? `?token=${token}` : ''
   const qAnd = token ? `?token=${token}&` : '?'
@@ -455,6 +490,64 @@ export default async function AdminPage({
               <p className="font-display font-bold text-2xl text-text-muted">—</p>
               <p className="text-text-muted text-xs mt-1">Saisie manuelle à venir</p>
             </div>
+          </div>
+
+          {/* Derniers retours NPS */}
+          <div className="mb-8">
+            <h3 className="font-display font-semibold text-sm text-text mb-3">
+              Derniers retours NPS ({npsTotal})
+            </h3>
+            {npsDetail.length === 0 ? (
+              <p className="text-text-muted text-sm bg-surface border border-border rounded-xl px-4 py-3">
+                Aucun retour pour le moment.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {npsDetail.map(row => {
+                  const cat = npsCategory(row.score)
+                  const reg = Array.isArray(row.registrations) ? (row.registrations[0] ?? null) : row.registrations
+                  const exp = reg ? (Array.isArray(reg.experiences) ? (reg.experiences[0] ?? null) : reg.experiences) : null
+                  const expTitle = exp?.title ?? '—'
+                  return (
+                    <div
+                      key={row.id}
+                      className="bg-surface border border-border rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"
+                    >
+                      {/* Score badge */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`font-display font-bold text-2xl tabular-nums ${cat.color}`}>
+                          {row.score}
+                        </span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                          row.score >= 9
+                            ? 'border-success/30 bg-success/10 text-success'
+                            : row.score >= 7
+                            ? 'border-warning/30 bg-warning/10 text-warning'
+                            : 'border-error/30 bg-error/10 text-error'
+                        }`}>
+                          {cat.label}
+                        </span>
+                      </div>
+
+                      {/* Meta */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-text text-sm font-medium truncate">{expTitle}</p>
+                        {row.comment ? (
+                          <p className="text-text-muted text-xs italic mt-0.5 line-clamp-2">{row.comment}</p>
+                        ) : (
+                          <p className="text-text-muted text-xs mt-0.5">Pas de commentaire</p>
+                        )}
+                      </div>
+
+                      {/* Date */}
+                      <p className="text-text-muted text-xs shrink-0 whitespace-nowrap">
+                        {relativeDate(row.created_at)}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           {/* Top 5 */}
