@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Search, Star, MapPin } from 'lucide-react'
 import { cookies } from 'next/headers'
 import { createServerSupabase } from '@/lib/supabase'
+import { getCity } from '@/lib/city'
 import { FOURNISSEUR_CATEGORY_LABELS } from '@/types/fournisseur'
 import type { Lieu } from '@/types/lieu'
 import type { Fournisseur, FournisseurCategory } from '@/types/fournisseur'
@@ -41,9 +42,12 @@ export default async function MarketplacePage({
 }: {
   searchParams: Promise<{ q?: string; type?: string; category?: string; city?: string }>
 }) {
-  const { q = '', type = '', category = '', city = '' } = await searchParams
+  const { q = '', type = '', category = '' } = await searchParams
+  let { city = '' } = await searchParams
 
   const cookieStore = await cookies()
+  // Default city to cookie value when not specified in URL
+  if (!city) city = getCity(cookieStore)
   const axesCookie = cookieStore.get('sv_axes')
   let userAxes: AxesTarget | null = null
   if (axesCookie) {

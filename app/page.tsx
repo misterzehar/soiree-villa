@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { Sparkles, User, Calendar, MapPin } from "lucide-react";
+import { cookies } from "next/headers";
 import { WaitlistForm } from "@/components/landing/waitlist-form";
 import { SiteHeader } from "@/components/site-header";
 import { createServerSupabase, createSupabaseServerClient } from "@/lib/supabase";
 import { getActorProfiles } from "@/lib/actors";
+import { getCity } from "@/lib/city";
+import { fetchTierData, TIER_CONFIG } from "@/lib/tier";
 import type { ActorProfiles } from "@/lib/actors";
-import type { PricingTier } from "@/types/experience";
+import type { PricingTier, Experience } from "@/types/experience";
 
 export const dynamic = 'force-dynamic'
 
@@ -78,24 +81,44 @@ const EXPERIENCES_PREVIEW = [
 
 export default async function HomePage() {
   const supabase = createServerSupabase()
+  const cookieStore = await cookies()
+  const city = getCity(cookieStore)
+  const now = new Date().toISOString()
 
-  // Compteurs publics + obsession de la semaine
+  // Compteurs publics + obsession de la semaine + Tier S
   const [
     { count: expCount },
     { count: lieuxCount },
     { count: fournisseursCount },
     { data: obsessionRaw },
+    { data: upcomingCityExpsRaw },
   ] = await Promise.all([
-    supabase.from('experiences').select('*', { count: 'exact', head: true }).eq('status', 'published'),
-    supabase.from('lieux').select('*', { count: 'exact', head: true }).eq('is_approved', true),
-    supabase.from('fournisseurs').select('*', { count: 'exact', head: true }).eq('is_approved', true),
+    supabase.from('experiences').select('*', { count: 'exact', head: true }).eq('status', 'published').eq('city', city),
+    supabase.from('lieux').select('*', { count: 'exact', head: true }).eq('is_approved', true).eq('city', city),
+    supabase.from('fournisseurs').select('*', { count: 'exact', head: true }).eq('is_approved', true).eq('city', city),
     supabase
       .from('experiences')
       .select('id, title, description, date, venue_name, organizer_name, cover_image_url, pricing_tiers')
       .eq('status', 'published')
       .eq('is_obsession_of_week', true)
       .single(),
+    supabase
+      .from('experiences')
+      .select('id, title, date, venue_name, cover_image_url, pricing_tiers')
+      .eq('status', 'published')
+      .eq('city', city)
+      .gt('date', now)
+      .order('date', { ascending: true })
+      .limit(20),
   ])
+
+  // Compute Tier S bandeau
+  const upcomingCityExps = (upcomingCityExpsRaw ?? []) as Pick<Experience, 'id' | 'title' | 'date' | 'venue_name' | 'cover_image_url' | 'pricing_tiers'>[]
+  const upcomingIds = upcomingCityExps.map(e => e.id)
+  const { tiers: expTiers } = upcomingIds.length > 0
+    ? await fetchTierData(supabase, upcomingIds)
+    : { tiers: {} as Record<string, string> }
+  const tierSExps = upcomingCityExps.filter(e => expTiers[e.id] === 'S').slice(0, 3)
 
   type ObsessionExp = {
     id: string
@@ -131,8 +154,8 @@ export default async function HomePage() {
       icon: '🎉',
       title: 'Soirées',
       desc: exp > 0
-        ? `${exp} expérience${exp > 1 ? 's' : ''} animée${exp > 1 ? 's' : ''} disponible${exp > 1 ? 's' : ''} à Nice`
-        : 'Bientôt disponibles à Nice',
+        ? `${exp} expérience${exp > 1 ? 's' : ''} animée${exp > 1 ? 's' : ''} disponible${exp > 1 ? 's' : ''} à ${city}`
+        : `Bientôt disponibles à ${city}`,
     },
     {
       href: '/lieux',
@@ -140,7 +163,7 @@ export default async function HomePage() {
       title: 'Lieux',
       desc: lieux > 0
         ? `${lieux} lieu${lieux > 1 ? 'x' : ''} partenaire${lieux > 1 ? 's' : ''} — du rooftop au loft industriel`
-        : 'Lieux partenaires à Nice',
+        : `Lieux partenaires à ${city}`,
     },
     {
       href: '/fournisseurs',
@@ -324,7 +347,7 @@ export default async function HomePage() {
           <h2 className="font-display font-bold text-3xl text-text mb-2">
             Tout ce que propose Soirée Villa
           </h2>
-          <p className="text-text-muted text-sm">Soirées, lieux et prestataires à Nice</p>
+          <p className="text-text-muted text-sm">Soirées, lieux et prestataires à {city}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -346,6 +369,66 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ── TIER S BANDEAU ───────────────────────────────────────────────── */}
+      {tierSExps.length > 0 && (() => {
+        const cfg = TIER_CONFIG['S']
+        return (
+          <section className={`px-6 py-12 md:px-12 md:py-16 border-y border-border ${cfg.bg}`}>
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${cfg.bg} ${cfg.color} mb-2`}>
+                    <span className="font-display">S</span> Tier — Top 10% de nos soirées
+                  </span>
+                  <h2 className="font-display font-bold text-2xl text-text">
+                    Les meilleures soirées à {city}
+                  </h2>
+                </div>
+                <Link href="/tier-list" className="text-sm text-primary font-semibold hover:underline shrink-0 hidden sm:block">
+                  Voir le classement complet →
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {tierSExps.map(exp => {
+                  const tier = (exp.pricing_tiers as PricingTier[]).find(t => t.quantity > 0) ?? (exp.pricing_tiers as PricingTier[])[0]
+                  return (
+                    <Link
+                      key={exp.id}
+                      href={`/experiences/${exp.id}`}
+                      className="bg-surface rounded-2xl overflow-hidden border border-border hover:shadow-md transition-all group"
+                    >
+                      {exp.cover_image_url ? (
+                        <div className="aspect-video w-full overflow-hidden">
+                          <img src={exp.cover_image_url} alt={exp.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        </div>
+                      ) : (
+                        <div className={`aspect-video w-full flex items-center justify-center ${cfg.bg} border-b border-border`}>
+                          <span className={`font-display font-bold text-5xl opacity-20 ${cfg.color}`}>S</span>
+                        </div>
+                      )}
+                      <div className="p-4">
+                        <p className="font-display font-semibold text-text text-sm leading-snug group-hover:text-primary transition-colors mb-1">{exp.title}</p>
+                        <p className="text-text-muted text-xs">
+                          {new Date(exp.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {exp.venue_name}
+                        </p>
+                        {tier && (
+                          <p className={`mt-2 text-sm font-bold ${cfg.color}`}>{Math.round(tier.price_cents / 100)} €</p>
+                        )}
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+              <div className="mt-4 text-center sm:hidden">
+                <Link href="/tier-list" className="text-sm text-primary font-semibold hover:underline">
+                  Voir le classement complet →
+                </Link>
+              </div>
+            </div>
+          </section>
+        )
+      })()}
 
       {/* ── COMMENT ÇA MARCHE ─────────────────────────────────────────────── */}
       <section className="px-6 py-16 md:px-12 md:py-24 max-w-4xl mx-auto">

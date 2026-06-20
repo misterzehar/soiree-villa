@@ -106,6 +106,7 @@ export default async function AdminPage({
     { data: npsScoresRaw },
     { data: publishedExpsForObsession },
     { data: npsDetailRaw },
+    { data: waitlistCityRaw },
   ] = await Promise.all([
     supabase.from('contact_requests').select('id', { count: 'exact', head: true }).eq('is_read', false).eq('is_archived', false),
     supabase.from('briefs').select('id', { count: 'exact', head: true }).eq('status', 'open'),
@@ -153,6 +154,7 @@ export default async function AdminPage({
       .select('id, score, comment, created_at, registrations(experience_id, experiences(title))')
       .order('created_at', { ascending: false })
       .limit(10),
+    supabase.from('waitlist_city').select('city'),
   ])
 
   // --- Derived stats ---
@@ -218,6 +220,14 @@ export default async function AdminPage({
     }[] | null
   }
   const npsDetail = (npsDetailRaw ?? []) as NpsDetailRow[]
+
+  // Waitlist city counts
+  const waitlistCities = (waitlistCityRaw ?? []) as { city: string }[]
+  const waitlistByCity = waitlistCities.reduce<Record<string, number>>((acc, r) => {
+    acc[r.city] = (acc[r.city] ?? 0) + 1
+    return acc
+  }, {})
+  const waitlistTotal = waitlistCities.length
 
   function npsCategory(score: number): { label: string; color: string } {
     if (score >= 9) return { label: 'Promoteur',  color: 'text-success' }
@@ -316,6 +326,26 @@ export default async function AdminPage({
               <p className="text-text-muted text-xs mt-0.5">En attente de réponse</p>
             </div>
           </div>
+
+          {/* Waitlist multi-ville */}
+          {waitlistTotal > 0 && (
+            <div className="mt-6 bg-surface border border-border rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-display font-semibold text-sm text-text">
+                  Liste d&apos;attente — expansion multi-ville
+                </p>
+                <span className="text-xs font-bold text-primary">{waitlistTotal} inscrits</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(waitlistByCity).sort((a, b) => b[1] - a[1]).map(([city, count]) => (
+                  <span key={city} className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">
+                    {city}
+                    <span className="font-bold">{count}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
         {/* ── P — Pratique ────────────────────────────────────────────── */}

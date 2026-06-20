@@ -1,7 +1,10 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase'
 import { getActorProfiles } from '@/lib/actors'
+import { getCity } from '@/lib/city'
 import { NavClient } from './nav-client'
+import { CitySelector } from './city-selector'
 import type { NavLink } from './nav-client'
 
 const ADMIN_EMAIL = 'misterzehar@gmail.com'
@@ -20,6 +23,8 @@ const PUBLIC_NAV: NavLink[] = [
 export async function SiteHeader({ variant = 'light', center }: Props) {
   const authClient = await createSupabaseServerClient()
   const { data: { user } } = await authClient.auth.getUser()
+  const cookieStore = await cookies()
+  const city = getCity(cookieStore)
 
   const isAdmin = user?.email === ADMIN_EMAIL
 
@@ -47,6 +52,9 @@ export async function SiteHeader({ variant = 'light', center }: Props) {
 
   return (
     <div className="flex items-center gap-4">
+      {/* Sélecteur ville */}
+      <CitySelector initialCity={city} variant={variant} />
+
       {/* Logo */}
       <Link href="/" className={`font-display font-bold text-lg tracking-tight shrink-0 ${logoClass}`}>
         Soirée Villa

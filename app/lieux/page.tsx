@@ -1,5 +1,8 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { createServerSupabase } from '@/lib/supabase'
+import { getCity } from '@/lib/city'
+import { CityWaitlistForm } from '@/components/city-waitlist-form'
 import type { Lieu } from '@/types/lieu'
 
 export const dynamic = 'force-dynamic'
@@ -10,11 +13,15 @@ const LIEU_TYPE_LABELS: Record<string, string> = {
 }
 
 export default async function LieuxPage() {
+  const cookieStore = await cookies()
+  const city = getCity(cookieStore)
+
   const supabase = createServerSupabase()
   const { data } = await supabase
     .from('lieux')
     .select('*')
     .eq('is_approved', true)
+    .eq('city', city)
     .order('name')
 
   const lieux = (data ?? []) as Lieu[]
@@ -24,11 +31,18 @@ export default async function LieuxPage() {
       <div className="max-w-md mx-auto px-4 pt-6 pb-20">
         <h1 className="font-display font-bold text-2xl text-text mb-1">Nos lieux partenaires</h1>
         <p className="text-text-muted text-sm mb-6">
-          {lieux.length} lieu{lieux.length > 1 ? 'x' : ''} disponible{lieux.length > 1 ? 's' : ''} à Nice
+          {lieux.length} lieu{lieux.length > 1 ? 'x' : ''} disponible{lieux.length > 1 ? 's' : ''} à {city}
         </p>
 
         {lieux.length === 0 ? (
-          <p className="text-text-muted text-sm">Aucun lieu disponible pour l&apos;instant.</p>
+          <div className="bg-surface rounded-2xl p-6 text-center border border-border">
+            <p className="text-3xl mb-3">🏠</p>
+            <p className="font-display font-semibold text-text mb-1">Bientôt à {city} !</p>
+            <p className="text-text-muted text-sm mb-5">
+              Pas encore de lieux partenaires dans ta ville. Laisse ton email pour être prévenu·e en premier.
+            </p>
+            <CityWaitlistForm city={city} />
+          </div>
         ) : (
           <div className="flex flex-col gap-3">
             {lieux.map(lieu => (

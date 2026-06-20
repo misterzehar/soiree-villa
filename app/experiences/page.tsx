@@ -8,12 +8,15 @@ import type { Experience } from '@/types/experience'
 import { ExperiencesList } from '@/components/experiences/experiences-list'
 import { EmptyState } from '@/components/experiences/empty-state'
 import { SiteHeader } from '@/components/site-header'
+import { CityWaitlistForm } from '@/components/city-waitlist-form'
+import { getCity } from '@/lib/city'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ExperiencesPage() {
   const cookieStore = await cookies()
   const profileId = cookieStore.get('sv_profile')?.value as ProfileId | null
+  const city = getCity(cookieStore)
 
   // Parse user's 6D normalized axes from cookie (set by Phase 7 onboarding)
   let userAxes: AxesTarget | null = null
@@ -27,13 +30,14 @@ export default async function ExperiencesPage() {
 
   const profile = profileId ? PROFILES.find(p => p.id === profileId) ?? null : null
 
-  // Fetch ALL published future experiences (no profile filter — we sort by score instead)
+  // Fetch published future experiences filtered by city
   const supabase = createServerSupabase()
   const now = new Date().toISOString()
   const { data } = await supabase
     .from('experiences')
     .select('*')
     .eq('status', 'published')
+    .eq('city', city)
     .gt('date', now)
     .order('date', { ascending: true })
 
@@ -108,7 +112,14 @@ export default async function ExperiencesPage() {
             matchScores={userAxes ? matchScores : undefined}
           />
         ) : (
-          <EmptyState />
+          <div className="bg-surface rounded-2xl p-6 text-center border border-border">
+            <p className="text-3xl mb-3">🌇</p>
+            <p className="font-display font-semibold text-text mb-1">Bientôt à {city} !</p>
+            <p className="text-text-muted text-sm mb-5">
+              Pas encore d&apos;expériences dans ta ville. Laisse ton email pour être prévenu·e en premier.
+            </p>
+            <CityWaitlistForm city={city} />
+          </div>
         )}
       </div>
     </main>

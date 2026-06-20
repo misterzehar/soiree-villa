@@ -10,6 +10,8 @@ import type { ProfileId, AxesTarget } from '@/constants/profiles'
 import type { Experience } from '@/types/experience'
 import { signOut } from '@/app/auth/actions'
 import { BADGES } from '@/lib/badges'
+import { SUPPORTED_CITIES } from '@/constants/cities'
+import { updatePreferredCity } from './actions'
 
 type Registration = {
   id: string
@@ -48,7 +50,7 @@ export default async function ComptePage() {
   const serviceSupabase = createServerSupabase()
   const { data: profile } = await serviceSupabase
     .from('profiles')
-    .select('display_name, social_profile_id, role')
+    .select('display_name, social_profile_id, role, preferred_city')
     .eq('id', user.id)
     .single()
 
@@ -222,6 +224,27 @@ export default async function ComptePage() {
               Découvrir mon profil social →
             </Link>
           )}
+
+          {/* Ville préférée */}
+          <form action={updatePreferredCity} className="mt-4 flex items-center gap-3">
+            <MapPin className="w-4 h-4 text-text-muted shrink-0" />
+            <select
+              name="city"
+              defaultValue={profile?.preferred_city ?? ''}
+              className="flex-1 text-sm bg-bg border border-border rounded-lg px-3 py-2 text-text focus:outline-none focus:border-primary"
+            >
+              <option value="">Ma ville préférée…</option>
+              {SUPPORTED_CITIES.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="shrink-0 text-xs font-semibold text-primary border border-primary/30 rounded-lg px-3 py-2 hover:bg-primary/5 transition-colors"
+            >
+              Sauvegarder
+            </button>
+          </form>
 
           {/* Migration banner */}
           {isLegacyProfile && (
