@@ -4,6 +4,7 @@ import { createServerSupabase } from '@/lib/supabase'
 import { getCity } from '@/lib/city'
 import { fetchTierData, TIER_CONFIG, type TierLabel } from '@/lib/tier'
 import { SiteHeader } from '@/components/site-header'
+import { TierListNav } from '@/components/tier-maker/tier-list-nav'
 import type { Experience } from '@/types/experience'
 
 export const dynamic = 'force-dynamic'
@@ -11,6 +12,7 @@ export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Tier List — Soirée Villa',
 }
+
 
 const TIER_ORDER: TierLabel[] = ['S', 'A', 'B', 'C', 'D']
 
@@ -59,7 +61,7 @@ export default async function TierListPage() {
           <SiteHeader />
         </div>
 
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="font-display font-bold text-2xl text-text mb-1">
             Tier List — {city}
           </h1>
@@ -67,6 +69,8 @@ export default async function TierListPage() {
             Classement des soirées passées · Score : NPS × 0.5 + remplissage × 0.3 + avis × 0.2
           </p>
         </div>
+
+        <TierListNav active="algo" />
 
         {/* Légende des tiers */}
         <div className="flex flex-wrap gap-2 mb-8">

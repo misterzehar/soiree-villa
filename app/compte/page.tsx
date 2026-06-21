@@ -11,6 +11,7 @@ import type { Experience } from '@/types/experience'
 import { signOut } from '@/app/auth/actions'
 import { BADGES } from '@/lib/badges'
 import { SUPPORTED_CITIES } from '@/constants/cities'
+import { TIER_CATEGORY_LABELS, type TierCategory } from '@/lib/community-tier'
 import { updatePreferredCity } from './actions'
 
 type Registration = {
@@ -132,6 +133,19 @@ export default async function ComptePage() {
     .select('badge_id')
     .eq('user_id', user.id)
   const earnedIds = new Set((badgesEarned ?? []).map(b => b.badge_id))
+
+  // Tier lists progress
+  const { data: tierListsRaw } = await serviceSupabase
+    .from('user_tier_lists')
+    .select('category, items_by_tier')
+    .eq('user_id', user.id)
+
+  type TierListRow = { category: string; items_by_tier: Record<string, string[]> }
+  const tierListMap: Record<string, number> = {}
+  for (const row of (tierListsRaw ?? []) as TierListRow[]) {
+    const count = Object.values(row.items_by_tier).flat().length
+    tierListMap[row.category] = count
+  }
 
   // Unread message badges
   const expIds = upcomingList.filter(r => r.experiences).map(r => r.experiences!.id)
@@ -381,6 +395,35 @@ export default async function ComptePage() {
                     <p className="text-text-muted text-[10px]">À débloquer</p>
                   )}
                 </div>
+              )
+            })}
+          </div>
+        </section>
+
+        {/* Mes tier lists */}
+        <section className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display font-semibold text-lg text-text">Mes tier lists</h2>
+            <Link href="/tier-list/mienne" className="text-primary text-sm font-semibold hover:underline">
+              Éditer →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {(Object.keys(TIER_CATEGORY_LABELS) as TierCategory[]).map(cat => {
+              const count = tierListMap[cat] ?? 0
+              return (
+                <Link
+                  key={cat}
+                  href={`/tier-list/mienne?cat=${cat}`}
+                  className="bg-surface rounded-2xl p-4 border border-border hover:border-primary/30 hover:shadow-sm transition-all group"
+                >
+                  <p className="font-display font-semibold text-text text-sm group-hover:text-primary transition-colors leading-snug mb-1">
+                    {TIER_CATEGORY_LABELS[cat]}
+                  </p>
+                  <p className="text-text-muted text-xs">
+                    {count > 0 ? `${count} classé${count > 1 ? 's' : ''}` : 'Non commencé'}
+                  </p>
+                </Link>
               )
             })}
           </div>
