@@ -13,6 +13,15 @@ import { getCity } from '@/lib/city'
 
 export const dynamic = 'force-dynamic'
 
+export const metadata = {
+  title: 'Soirées',
+  description: 'Toutes les expériences sociales animées disponibles près de chez toi. Matchées pour ton profil.',
+  openGraph: {
+    title: 'Les soirées — Soirée Villa',
+    description: 'Des expériences animées, matchées pour ton style social.',
+  },
+}
+
 export default async function ExperiencesPage() {
   const cookieStore = await cookies()
   const profileId = cookieStore.get('sv_profile')?.value as ProfileId | null

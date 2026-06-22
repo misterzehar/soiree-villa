@@ -15,15 +15,36 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Soirée Villa — Des soirées pensées pour ton style social",
+  title: {
+    default: "Soirée Villa — La soirée qui te ressemble existe.",
+    template: "%s — Soirée Villa",
+  },
   description:
-    "Découvre ton style social en 15 questions et rejoins des expériences animées qui te ressemblent. Lancement à Nice.",
+    "Découvre ton style social en 15 questions. Rejoins des expériences animées pensées pour qui tu es. Comprendre · Vivre · Oser.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://soireevilla.com"),
   openGraph: {
-    title: "Soirée Villa",
+    title: "Soirée Villa — La soirée qui te ressemble existe.",
     description: "Pas une soirée au hasard. Une expérience où tu te sens à ta place.",
     siteName: "Soirée Villa",
     locale: "fr_FR",
     type: "website",
+    images: [
+      {
+        url: "/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "Soirée Villa — Comprendre · Vivre · Oser",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Soirée Villa",
+    description: "La soirée qui te ressemble existe.",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

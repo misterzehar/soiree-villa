@@ -22,7 +22,7 @@ export function StickyCtaBar({
               href={`/experiences/${experience.id}/register`}
               className="block w-full text-center bg-primary hover:bg-primary/90 text-white font-display font-semibold py-4 rounded-2xl shadow-md transition-colors duration-150"
             >
-              Je participe — {formatPrice(tierInfo.tier.price_cents)}
+              Réserve ta place — {formatPrice(tierInfo.tier.price_cents)}
             </Link>
             <p className="text-center text-text-muted text-xs mt-2">
               {tierInfo.tier.label} — {tierInfo.placesRestantes} place{tierInfo.placesRestantes > 1 ? 's' : ''} restante{tierInfo.placesRestantes > 1 ? 's' : ''}

@@ -8,6 +8,15 @@ import type { Fournisseur, FournisseurCategory } from '@/types/fournisseur'
 
 export const dynamic = 'force-dynamic'
 
+export const metadata = {
+  title: 'Prestataires partenaires',
+  description: 'DJ, traiteurs, décoration, animation — les prestataires qui font les soirées Soirée Villa.',
+  openGraph: {
+    title: 'Prestataires partenaires — Soirée Villa',
+    description: 'DJ, traiteurs, déco et animation au service des meilleures soirées.',
+  },
+}
+
 export default async function FournisseursPage() {
   const cookieStore = await cookies()
   const city = getCity(cookieStore)

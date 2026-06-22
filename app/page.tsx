@@ -1,83 +1,60 @@
-import Link from "next/link";
-import { Sparkles, User, Calendar, MapPin } from "lucide-react";
-import { cookies } from "next/headers";
-import { WaitlistForm } from "@/components/landing/waitlist-form";
-import { SiteHeader } from "@/components/site-header";
-import { createServerSupabase, createSupabaseServerClient } from "@/lib/supabase";
-import { getActorProfiles } from "@/lib/actors";
-import { getCity } from "@/lib/city";
-import { fetchTierData, TIER_CONFIG } from "@/lib/tier";
-import type { ActorProfiles } from "@/lib/actors";
-import type { PricingTier, Experience } from "@/types/experience";
+import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { Heart, Users, Zap } from 'lucide-react'
+import { WaitlistForm } from '@/components/landing/waitlist-form'
+import { SiteHeader } from '@/components/site-header'
+import { HeroAnimated } from '@/components/landing/hero-animated'
+import { ScrollReveal } from '@/components/landing/scroll-reveal'
+import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
+import { getActorProfiles } from '@/lib/actors'
+import { getCity } from '@/lib/city'
+import { fetchTierData, TIER_CONFIG } from '@/lib/tier'
+import type { ActorProfiles } from '@/lib/actors'
+import type { PricingTier, Experience } from '@/types/experience'
 
 export const dynamic = 'force-dynamic'
 
-// ─── Données statiques ───────────────────────────────────────────────────────
-
 const HOW_IT_WORKS = [
   {
-    icon: Sparkles,
-    step: "Étape 1",
-    title: "15 mini-questions",
-    desc: "Format \"Tu préfères ?\" — rapide, ludique, sans créer de compte.",
+    icon: Heart,
+    step: 'Comprendre',
+    title: '15 questions, ton style révélé',
+    desc: 'Le quiz "Tu préfères ?" cerne ta façon d\'être en groupe. En moins d\'une minute.',
   },
   {
-    icon: User,
-    step: "Étape 2",
-    title: "Ton profil social révélé",
-    desc: "Explorateur Festif, Connecteur Social, Cérébral Curieux… l'un des 6 archétypes.",
+    icon: Users,
+    step: 'Vivre',
+    title: 'Des soirées qui te matchent',
+    desc: 'On te propose des expériences animées, sélectionnées pour ton profil. Rien d\'au hasard.',
   },
   {
-    icon: Calendar,
-    step: "Étape 3",
-    title: "Des soirées qui te matchent",
-    desc: "Des expériences animées, sélectionnées pour ton style. Mémorables.",
+    icon: Zap,
+    step: 'Oser',
+    title: 'Des liens qui durent',
+    desc: 'Chaque soirée suit un parcours en 3 actes. Tu repartiras avec de vraies rencontres.',
   },
-];
+]
 
 const ACTS = [
   {
-    number: "01",
-    verb: "Comprendre",
-    desc: "Tu observes, tu te mets en confiance. L'hôte pose le cadre et installe l'ambiance.",
+    number: '01',
+    verb: 'Comprendre',
+    tagline: 'Entrée',
+    desc: "L'hôte installe le cadre. Tu observes, tu te mets en confiance. Personne n'est balancé dans le vide.",
   },
   {
-    number: "02",
-    verb: "Vivre",
-    desc: "Tu agis, tu partages quelque chose de concret. Le groupe prend vie autour d'une activité.",
+    number: '02',
+    verb: 'Vivre',
+    tagline: 'Plat',
+    desc: 'Le groupe agit ensemble. Une activité, un défi, un moment concret. Le lien se tisse dans l\'action.',
   },
   {
-    number: "03",
-    verb: "Oser",
-    desc: "Tu te livres, tu crées du vrai lien. La magie opère dans ce moment hors du temps.",
+    number: '03',
+    verb: 'Oser',
+    tagline: 'Dessert',
+    desc: 'La magie opère. Tu te livres un peu. Tu repartiras avec au moins une vraie rencontre.',
   },
-];
-
-const EXPERIENCES_PREVIEW = [
-  {
-    label: "Blind test rooftop",
-    ambiance: "Festif · Grand groupe",
-    tag: "Nice",
-    cardClass: "bg-primary/8",
-    accentClass: "text-primary",
-  },
-  {
-    label: "Atelier dégustation",
-    ambiance: "Intimiste · Curieux",
-    tag: "Nice",
-    cardClass: "bg-accent/8",
-    accentClass: "text-accent",
-  },
-  {
-    label: "Cercle de parole",
-    ambiance: "Authentique · Profond",
-    tag: "Nice",
-    cardClass: "bg-secondary/8",
-    accentClass: "text-secondary",
-  },
-];
-
-// ─── Page ────────────────────────────────────────────────────────────────────
+]
 
 export default async function HomePage() {
   const supabase = createServerSupabase()
@@ -85,7 +62,6 @@ export default async function HomePage() {
   const city = getCity(cookieStore)
   const now = new Date().toISOString()
 
-  // Compteurs publics + obsession de la semaine + Tier S
   const [
     { count: expCount },
     { count: lieuxCount },
@@ -112,7 +88,16 @@ export default async function HomePage() {
       .limit(20),
   ])
 
-  // Compute Tier S bandeau
+  type ObsessionExp = {
+    id: string; title: string; description: string; date: string
+    venue_name: string; organizer_name: string; cover_image_url: string | null; pricing_tiers: PricingTier[]
+  }
+  const obsession = obsessionRaw as ObsessionExp | null
+
+  function currentPrice(tiers: PricingTier[]): PricingTier | null {
+    return tiers.find(t => t.quantity > 0) ?? tiers[0] ?? null
+  }
+
   const upcomingCityExps = (upcomingCityExpsRaw ?? []) as Pick<Experience, 'id' | 'title' | 'date' | 'venue_name' | 'cover_image_url' | 'pricing_tiers'>[]
   const upcomingIds = upcomingCityExps.map(e => e.id)
   const { tiers: expTiers } = upcomingIds.length > 0
@@ -120,24 +105,6 @@ export default async function HomePage() {
     : { tiers: {} as Record<string, string> }
   const tierSExps = upcomingCityExps.filter(e => expTiers[e.id] === 'S').slice(0, 3)
 
-  type ObsessionExp = {
-    id: string
-    title: string
-    description: string
-    date: string
-    venue_name: string
-    organizer_name: string
-    cover_image_url: string | null
-    pricing_tiers: PricingTier[]
-  }
-  const obsession = obsessionRaw as ObsessionExp | null
-
-  // Tarif courant (premier tier avec des places — logique simplifiée pour landing)
-  function currentPrice(tiers: PricingTier[]): PricingTier | null {
-    return tiers.find(t => t.quantity > 0) ?? tiers[0] ?? null
-  }
-
-  // Profils de l'utilisateur connecté (pour la section "Tu es un pro?")
   const authClient = await createSupabaseServerClient()
   const { data: { user } } = await authClient.auth.getUser()
   const profiles: ActorProfiles = user
@@ -147,33 +114,6 @@ export default async function HomePage() {
   const exp = expCount ?? 0
   const lieux = lieuxCount ?? 0
   const fournisseurs = fournisseursCount ?? 0
-
-  const EXPLORE_CARDS = [
-    {
-      href: '/experiences',
-      icon: '🎉',
-      title: 'Soirées',
-      desc: exp > 0
-        ? `${exp} expérience${exp > 1 ? 's' : ''} animée${exp > 1 ? 's' : ''} disponible${exp > 1 ? 's' : ''} à ${city}`
-        : `Bientôt disponibles à ${city}`,
-    },
-    {
-      href: '/lieux',
-      icon: '🏠',
-      title: 'Lieux',
-      desc: lieux > 0
-        ? `${lieux} lieu${lieux > 1 ? 'x' : ''} partenaire${lieux > 1 ? 's' : ''} — du rooftop au loft industriel`
-        : `Lieux partenaires à ${city}`,
-    },
-    {
-      href: '/fournisseurs',
-      icon: '🎵',
-      title: 'Fournisseurs',
-      desc: fournisseurs > 0
-        ? `${fournisseurs} prestataire${fournisseurs > 1 ? 's' : ''} : DJ, traiteur, déco, animation`
-        : 'DJ, traiteur, déco, animation',
-    },
-  ]
 
   const PRO_CARDS = [
     {
@@ -187,7 +127,7 @@ export default async function HomePage() {
     {
       icon: '🏠',
       role: 'Lieu',
-      desc: "Propose ton espace aux organisateurs. Visibilité immédiate auprès des créateurs d'événements.",
+      desc: 'Propose ton espace aux organisateurs. Visibilité immédiate auprès des créateurs d\'événements.',
       href: profiles.hasLieu ? '/lieu' : '/lieu/inscription',
       label: profiles.hasLieu ? 'Accéder à mon espace →' : 'Inscrire mon lieu',
       isRegistered: profiles.hasLieu,
@@ -195,7 +135,7 @@ export default async function HomePage() {
     {
       icon: '🎵',
       role: 'Fournisseur',
-      desc: 'DJ, traiteur, décoration, animation — rejoins la marketplace et sois contacté directement.',
+      desc: 'DJ, traiteur, déco, animation — rejoins la marketplace et sois contacté directement.',
       href: profiles.hasFourn ? '/fournisseur' : '/fournisseur/inscription',
       label: profiles.hasFourn ? 'Accéder à mon espace →' : 'Inscrire ma prestation',
       isRegistered: profiles.hasFourn,
@@ -207,54 +147,28 @@ export default async function HomePage() {
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section className="relative flex flex-col min-h-screen overflow-hidden">
+        {/* Cinematic background — rooftop crépuscule placeholder */}
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-b from-text via-text/90 to-text/80"
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(160deg, #0d0d1a 0%, #1a1030 35%, #2a1a3e 55%, #0a1520 100%)',
+          }}
         />
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_30%_40%,rgba(74,108,247,0.35),transparent)]"
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_70%_60%,rgba(255,122,89,0.2),transparent)]"
-        />
+        {/* Atmospheric overlays */}
+        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_25%_40%,rgba(74,108,247,0.22),transparent)]" />
+        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_75%_65%,rgba(255,122,89,0.15),transparent)]" />
+        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_40%_30%_at_50%_85%,rgba(162,89,255,0.1),transparent)]" />
+        {/* Bottom fade to bg */}
+        <div aria-hidden className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-bg to-transparent" />
 
         <nav className="relative z-10 px-6 pt-6 md:px-12 md:pt-8">
           <SiteHeader variant="dark" />
         </nav>
 
-        <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-6 pb-20 text-center md:px-12">
-          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-5">
-            Comprendre · Vivre · Oser
-          </p>
+        <HeroAnimated />
 
-          <h1 className="font-display font-bold text-4xl md:text-5xl text-white max-w-2xl leading-tight mb-5">
-            Des soirées pensées pour{" "}
-            <span className="text-accent">ton style social.</span>
-          </h1>
-
-          <p className="text-lg text-white/70 max-w-md mb-10 leading-relaxed">
-            On te matche avec des expériences animées qui te ressemblent.
-            Plus de soirées subies.
-          </p>
-
-          <Link
-            href="/onboarding"
-            className="inline-flex items-center gap-2 bg-primary text-white font-semibold text-base px-8 py-4 rounded-full shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-150"
-          >
-            Découvre ton style
-            <span aria-hidden>→</span>
-          </Link>
-
-          <p className="mt-4 text-sm text-white/40">
-            15 questions · Moins d'une minute · Gratuit
-          </p>
-        </div>
-
-        <div aria-hidden className="relative z-10 flex justify-center pb-8 text-white/30 text-xs animate-bounce">
-          ↓
-        </div>
+        <div aria-hidden className="relative z-10 flex justify-center pb-8 text-white/20 text-xs animate-bounce">↓</div>
       </section>
 
       {/* ── OBSESSION DE LA SEMAINE ──────────────────────────────────────── */}
@@ -263,109 +177,115 @@ export default async function HomePage() {
         const dateFmt = new Date(obsession.date).toLocaleDateString('fr-FR', {
           weekday: 'long', day: 'numeric', month: 'long',
         })
-        const shortDesc = obsession.description.length > 200
-          ? obsession.description.slice(0, 197) + '…'
-          : obsession.description
-
         return (
-          <section className="px-6 py-12 md:px-12 md:py-16 bg-primary/5 border-y border-primary/10">
-            <div className="max-w-4xl mx-auto">
-
-              {/* Badge */}
-              <div className="flex justify-center mb-6">
-                <span className="inline-flex items-center gap-1.5 bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wide shadow-sm">
-                  ⭐ Obsession de la semaine
-                </span>
-              </div>
-
-              <div className="bg-surface rounded-3xl overflow-hidden shadow-md border border-primary/10">
-
-                {/* Cover image */}
-                {obsession.cover_image_url && (
+          <section className="px-4 py-12 md:px-12 md:py-16 max-w-5xl mx-auto">
+            <ScrollReveal>
+              <div className="relative rounded-3xl overflow-hidden shadow-xl border border-border group cursor-pointer">
+                {/* Full-bleed image */}
+                {obsession.cover_image_url ? (
                   <div className="relative w-full aspect-[16/7] overflow-hidden">
                     <img
                       src={obsession.cover_image_url}
                       alt={obsession.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-text/40 to-transparent" />
+                    {/* Gradient overlay — text at bottom */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  </div>
+                ) : (
+                  <div className="relative w-full aspect-[16/7] overflow-hidden"
+                    style={{ background: 'linear-gradient(135deg, #1a0533 0%, #2d1a6e 50%, #4A6CF7 100%)' }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   </div>
                 )}
 
-                {/* Content */}
-                <div className="p-6 md:p-8">
-                  <h2 className="font-display font-bold text-2xl md:text-3xl text-text mb-3 leading-tight">
-                    {obsession.title}
-                  </h2>
-
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-4">
-                    <span className="flex items-center gap-1.5 text-text-muted text-sm capitalize">
-                      <Calendar className="w-4 h-4 shrink-0 text-primary" />
-                      {dateFmt}
+                {/* Overlay content */}
+                <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-8">
+                  <div className="flex items-start justify-between">
+                    <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/20">
+                      ⭐ Obsession de la semaine
                     </span>
-                    <span className="flex items-center gap-1.5 text-text-muted text-sm">
-                      <MapPin className="w-4 h-4 shrink-0 text-primary" />
-                      {obsession.venue_name}
-                    </span>
-                    <span className="text-text-muted text-sm">
-                      par <span className="font-medium text-text">{obsession.organizer_name}</span>
-                    </span>
+                    {tier && (
+                      <span className="bg-white/10 backdrop-blur-md text-white font-display font-bold text-lg px-3 py-1 rounded-xl border border-white/20">
+                        {Math.round(tier.price_cents / 100)} €
+                      </span>
+                    )}
                   </div>
 
-                  <p className="text-text-muted text-sm leading-relaxed mb-6">{shortDesc}</p>
-
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    {tier && (
-                      <div>
-                        <p className="text-text-muted text-xs mb-0.5">{tier.label}</p>
-                        <p className="font-display font-bold text-2xl text-primary">
-                          {Math.round(tier.price_cents / 100)} €
-                        </p>
-                      </div>
-                    )}
+                  <div>
+                    <p className="text-white/60 text-xs uppercase tracking-widest mb-2 capitalize">{dateFmt} · {obsession.venue_name}</p>
+                    <h2 className="font-display font-bold text-2xl md:text-3xl text-white mb-3 leading-tight">
+                      {obsession.title}
+                    </h2>
+                    <p className="text-white/70 text-sm leading-relaxed mb-4 max-w-xl line-clamp-2">
+                      {obsession.description}
+                    </p>
                     <Link
                       href={`/experiences/${obsession.id}`}
-                      className="inline-flex items-center gap-2 bg-primary text-white font-semibold text-base px-7 py-3.5 rounded-full shadow hover:shadow-md hover:scale-[1.02] transition-all duration-150"
+                      className="inline-flex items-center gap-2 bg-white text-text font-semibold text-sm px-6 py-3 rounded-full hover:bg-white/90 transition-colors duration-200"
                     >
-                      Je participe →
+                      Réserve ta place →
                     </Link>
                   </div>
                 </div>
               </div>
-
-            </div>
+            </ScrollReveal>
           </section>
         )
       })()}
 
       {/* ── EXPLORER ─────────────────────────────────────────────────────── */}
-      <section className="px-6 py-14 md:px-12 md:py-20 max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
-            Explorer
-          </p>
-          <h2 className="font-display font-bold text-3xl text-text mb-2">
-            Tout ce que propose Soirée Villa
+      <section className="px-4 py-14 md:px-12 md:py-20 max-w-5xl mx-auto">
+        <ScrollReveal className="text-center mb-10">
+          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">Explorer</p>
+          <h2 className="font-display font-bold text-3xl md:text-4xl text-text mb-2">
+            Tout Soirée Villa à {city}
           </h2>
-          <p className="text-text-muted text-sm">Soirées, lieux et prestataires à {city}</p>
-        </div>
+          <p className="text-text-muted text-base">Soirées animées, lieux et prestataires partenaires</p>
+        </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {EXPLORE_CARDS.map(card => (
-            <Link
-              key={card.href}
-              href={card.href}
-              className="bg-surface border border-border rounded-2xl p-6 hover:shadow-md hover:border-primary/30 transition-all duration-200 flex flex-col gap-3 group"
-            >
-              <span className="text-3xl">{card.icon}</span>
-              <div className="flex-1">
-                <p className="font-display font-semibold text-lg text-text group-hover:text-primary transition-colors">
-                  {card.title}
-                </p>
-                <p className="text-text-muted text-sm mt-1 leading-relaxed">{card.desc}</p>
-              </div>
-              <p className="text-primary text-sm font-semibold">Explorer →</p>
-            </Link>
+          {[
+            {
+              href: '/experiences',
+              emoji: '🎉',
+              title: 'Soirées',
+              desc: exp > 0 ? `${exp} expérience${exp > 1 ? 's' : ''} disponible${exp > 1 ? 's' : ''}` : 'Bientôt disponibles',
+              cta: 'Trouver ma soirée',
+            },
+            {
+              href: '/lieux',
+              emoji: '🏠',
+              title: 'Lieux',
+              desc: lieux > 0 ? `${lieux} lieu${lieux > 1 ? 'x' : ''} partenaire${lieux > 1 ? 's' : ''}` : 'Lieux partenaires',
+              cta: 'Explorer les lieux',
+            },
+            {
+              href: '/fournisseurs',
+              emoji: '🎵',
+              title: 'Fournisseurs',
+              desc: fournisseurs > 0 ? `${fournisseurs} prestataire${fournisseurs > 1 ? 's' : ''}` : 'DJ, traiteur, déco',
+              cta: 'Voir la marketplace',
+            },
+          ].map((card, i) => (
+            <ScrollReveal key={card.href} delay={i * 0.08}>
+              <Link
+                href={card.href}
+                className="relative flex flex-col gap-4 bg-surface border border-border rounded-2xl p-6 overflow-hidden hover:border-primary/30 hover:shadow-lg transition-all duration-300 group h-full"
+              >
+                {/* Glassmorphism hover tint */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/0 group-hover:from-primary/4 group-hover:to-transparent transition-all duration-500 rounded-2xl" />
+                <span className="relative text-4xl">{card.emoji}</span>
+                <div className="relative flex-1">
+                  <p className="font-display font-semibold text-xl text-text group-hover:text-primary transition-colors duration-200 mb-1">
+                    {card.title}
+                  </p>
+                  <p className="text-text-muted text-sm leading-relaxed">{card.desc}</p>
+                </div>
+                <p className="relative text-primary text-sm font-semibold group-hover:gap-2 transition-all">{card.cta} →</p>
+              </Link>
+            </ScrollReveal>
           ))}
         </div>
       </section>
@@ -374,56 +294,46 @@ export default async function HomePage() {
       {tierSExps.length > 0 && (() => {
         const cfg = TIER_CONFIG['S']
         return (
-          <section className={`px-6 py-12 md:px-12 md:py-16 border-y border-border ${cfg.bg}`}>
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-center justify-between mb-6">
+          <section className="px-4 py-12 md:px-12 border-y border-border bg-surface">
+            <div className="max-w-5xl mx-auto">
+              <ScrollReveal className="flex items-end justify-between mb-6 gap-4">
                 <div>
-                  <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${cfg.bg} ${cfg.color} mb-2`}>
-                    <span className="font-display">S</span> Tier — Top 10% de nos soirées
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border mb-2 ${cfg.bg} ${cfg.color}`}>
+                    <span className="font-display">S</span> Tier — Top 10%
                   </span>
-                  <h2 className="font-display font-bold text-2xl text-text">
-                    Les meilleures soirées à {city}
-                  </h2>
+                  <h2 className="font-display font-bold text-2xl text-text">Les meilleures soirées à {city}</h2>
                 </div>
                 <Link href="/tier-list" className="text-sm text-primary font-semibold hover:underline shrink-0 hidden sm:block">
-                  Voir le classement complet →
+                  Classement complet →
                 </Link>
-              </div>
+              </ScrollReveal>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {tierSExps.map(exp => {
+                {tierSExps.map((exp, i) => {
                   const tier = (exp.pricing_tiers as PricingTier[]).find(t => t.quantity > 0) ?? (exp.pricing_tiers as PricingTier[])[0]
                   return (
-                    <Link
-                      key={exp.id}
-                      href={`/experiences/${exp.id}`}
-                      className="bg-surface rounded-2xl overflow-hidden border border-border hover:shadow-md transition-all group"
-                    >
-                      {exp.cover_image_url ? (
-                        <div className="aspect-video w-full overflow-hidden">
-                          <img src={exp.cover_image_url} alt={exp.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                        </div>
-                      ) : (
-                        <div className={`aspect-video w-full flex items-center justify-center ${cfg.bg} border-b border-border`}>
-                          <span className={`font-display font-bold text-5xl opacity-20 ${cfg.color}`}>S</span>
-                        </div>
-                      )}
-                      <div className="p-4">
-                        <p className="font-display font-semibold text-text text-sm leading-snug group-hover:text-primary transition-colors mb-1">{exp.title}</p>
-                        <p className="text-text-muted text-xs">
-                          {new Date(exp.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {exp.venue_name}
-                        </p>
-                        {tier && (
-                          <p className={`mt-2 text-sm font-bold ${cfg.color}`}>{Math.round(tier.price_cents / 100)} €</p>
+                    <ScrollReveal key={exp.id} delay={i * 0.08}>
+                      <Link
+                        href={`/experiences/${exp.id}`}
+                        className="block bg-bg rounded-2xl overflow-hidden border border-border hover:shadow-md hover:border-primary/20 transition-all group"
+                      >
+                        {exp.cover_image_url ? (
+                          <div className="aspect-video w-full overflow-hidden">
+                            <img src={exp.cover_image_url} alt={exp.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          </div>
+                        ) : (
+                          <div className={`aspect-video w-full flex items-center justify-center ${cfg.bg}`}>
+                            <span className={`font-display font-bold text-5xl opacity-20 ${cfg.color}`}>S</span>
+                          </div>
                         )}
-                      </div>
-                    </Link>
+                        <div className="p-4">
+                          <p className="font-display font-semibold text-text text-sm group-hover:text-primary transition-colors mb-1">{exp.title}</p>
+                          <p className="text-text-muted text-xs">{new Date(exp.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {exp.venue_name}</p>
+                          {tier && <p className={`mt-2 text-sm font-bold ${cfg.color}`}>{Math.round(tier.price_cents / 100)} €</p>}
+                        </div>
+                      </Link>
+                    </ScrollReveal>
                   )
                 })}
-              </div>
-              <div className="mt-4 text-center sm:hidden">
-                <Link href="/tier-list" className="text-sm text-primary font-semibold hover:underline">
-                  Voir le classement complet →
-                </Link>
               </div>
             </div>
           </section>
@@ -431,206 +341,231 @@ export default async function HomePage() {
       })()}
 
       {/* ── COMMENT ÇA MARCHE ─────────────────────────────────────────────── */}
-      <section className="px-6 py-16 md:px-12 md:py-24 max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
-            Le principe
-          </p>
-          <h2 className="font-display font-bold text-3xl text-text mb-3">
-            Comment ça marche ?
+      <section className="px-4 py-16 md:px-12 md:py-24 max-w-5xl mx-auto">
+        <ScrollReveal className="text-center mb-14">
+          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">Comment ça marche</p>
+          <h2 className="font-display font-bold text-3xl md:text-4xl text-text mb-3">
+            De 0 à ta meilleure soirée.
           </h2>
-          <p className="text-text-muted max-w-sm mx-auto">
-            En trois étapes, tu passes de « je sais pas quoi faire » à « j'y vais. »
+          <p className="text-text-muted text-base max-w-sm mx-auto">
+            Trois étapes, moins de 60 secondes pour la première.
           </p>
-        </div>
+        </ScrollReveal>
 
-        <div className="flex flex-col md:flex-row gap-5">
-          {HOW_IT_WORKS.map(({ icon: Icon, step, title, desc }) => (
-            <div
-              key={step}
-              className="flex-1 bg-surface rounded-2xl p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-200"
-            >
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                <Icon size={20} className="text-primary" strokeWidth={1.5} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {HOW_IT_WORKS.map(({ icon: Icon, step, title, desc }, i) => (
+            <ScrollReveal key={step} delay={i * 0.1}>
+              <div className="flex flex-col gap-4 p-6 bg-surface rounded-2xl border border-border h-full hover:shadow-md hover:border-primary/20 transition-all duration-300">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Icon size={18} className="text-primary" strokeWidth={1.5} />
+                  </div>
+                  <p className="text-xs font-bold text-primary uppercase tracking-widest">{step}</p>
+                </div>
+                <div>
+                  <h3 className="font-display font-semibold text-lg text-text mb-2 leading-snug">{title}</h3>
+                  <p className="text-sm text-text-muted leading-relaxed">{desc}</p>
+                </div>
               </div>
-              <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">{step}</p>
-              <h3 className="font-display font-semibold text-lg text-text mb-2">{title}</h3>
-              <p className="text-sm text-text-muted leading-relaxed">{desc}</p>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
       </section>
 
       {/* ── LES 3 ACTES ───────────────────────────────────────────────────── */}
-      <section className="bg-text text-white px-6 py-16 md:px-12 md:py-24">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
-              Notre signature
-            </p>
-            <h2 className="font-display font-bold text-3xl text-white mb-3">
-              Un parcours en 3 actes
+      <section className="relative overflow-hidden px-4 py-20 md:px-12 md:py-28"
+        style={{ background: 'linear-gradient(160deg, #0d0d1a 0%, #1a0f2e 50%, #0f1a2e 100%)' }}
+      >
+        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_50%,rgba(74,108,247,0.15),transparent)]" />
+        <div className="relative max-w-5xl mx-auto">
+          <ScrollReveal className="text-center mb-14">
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">Notre signature</p>
+            <h2 className="font-display font-bold text-3xl md:text-4xl text-white mb-3">
+              Un parcours en 3 actes.
             </h2>
-            <p className="text-white/60 max-w-sm mx-auto text-base">
+            <p className="text-white/50 text-base max-w-sm mx-auto">
               On ne te jette pas à l'eau. Chaque soirée suit un rythme naturel.
             </p>
-          </div>
+          </ScrollReveal>
 
-          <div className="flex flex-col md:flex-row gap-10 md:gap-8">
-            {ACTS.map(({ number, verb, desc }) => (
-              <div key={verb} className="flex-1">
-                <p className="font-mono text-sm text-white/20 mb-2 tabular-nums">{number}</p>
-                <h3 className="font-display font-bold text-2xl text-white mb-3">{verb}</h3>
-                <div className="w-8 h-0.5 bg-primary mb-4" />
-                <p className="text-white/65 text-sm leading-relaxed">{desc}</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            {ACTS.map(({ number, verb, tagline, desc }, i) => (
+              <ScrollReveal key={verb} delay={i * 0.1}>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-mono text-xs text-white/20 tabular-nums">{number}</span>
+                    <span className="text-white/40 text-xs uppercase tracking-widest">{tagline}</span>
+                  </div>
+                  <h3 className="font-display font-bold text-2xl text-white">{verb}</h3>
+                  <div className="w-8 h-px bg-primary" />
+                  <p className="text-white/55 text-sm leading-relaxed">{desc}</p>
+                </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CE QU'ON ORGANISE ─────────────────────────────────────────────── */}
-      <section className="px-6 py-16 md:px-12 md:py-24 max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
-            Les expériences
-          </p>
-          <h2 className="font-display font-bold text-3xl text-text mb-3">
-            Ce qu'on organise
-          </h2>
-          <p className="text-text-muted max-w-sm mx-auto">
-            Du blind test au cercle de parole — toujours animé, toujours connecté.
-          </p>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-4">
-          {EXPERIENCES_PREVIEW.map(({ label, ambiance, tag, cardClass, accentClass }) => (
-            <div
-              key={label}
-              className={`flex-1 rounded-2xl border border-border overflow-hidden ${cardClass}`}
-            >
-              <div className="h-44 w-full flex items-center justify-center">
-                <span className={`font-display font-bold text-5xl opacity-15 ${accentClass}`}>✦</span>
-              </div>
-              <div className="px-5 py-4 bg-surface/80">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="font-display font-semibold text-text">{label}</p>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 ${accentClass}`}>
-                    {tag}
-                  </span>
-                </div>
-                <p className="text-xs text-text-muted">{ambiance}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── TU ES UN PRO ? ────────────────────────────────────────────────── */}
-      <section className="bg-surface border-y border-border px-6 py-16 md:px-12 md:py-24">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
-              Partenaires
-            </p>
-            <h2 className="font-display font-bold text-3xl text-text mb-3">
-              Tu es un pro ?
-            </h2>
-            <p className="text-text-muted max-w-sm mx-auto">
+      <section className="px-4 py-16 md:px-12 md:py-24 bg-surface border-y border-border">
+        <div className="max-w-5xl mx-auto">
+          <ScrollReveal className="text-center mb-10">
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">Partenaires</p>
+            <h2 className="font-display font-bold text-3xl md:text-4xl text-text mb-3">Tu es un pro ?</h2>
+            <p className="text-text-muted text-base max-w-sm mx-auto">
               Rejoins Soirée Villa — organisateurs, lieux et prestataires bienvenus.
             </p>
-          </div>
+          </ScrollReveal>
 
-          <div className="flex flex-col md:flex-row gap-4">
-            {PRO_CARDS.map(card => (
-              <Link
-                key={card.role}
-                href={card.href}
-                className={`flex-1 rounded-2xl border p-6 transition-all duration-200 group hover:shadow-md ${
-                  card.isRegistered
-                    ? 'border-success/30 bg-success/5 hover:border-success/50'
-                    : 'border-border bg-bg hover:border-primary/30'
-                }`}
-              >
-                <span className="text-3xl mb-3 block">{card.icon}</span>
-                <p className="font-display font-semibold text-lg text-text mb-2">{card.role}</p>
-                <p className="text-text-muted text-sm mb-4 leading-relaxed">{card.desc}</p>
-                <p className={`text-sm font-semibold transition-colors ${
-                  card.isRegistered
-                    ? 'text-success'
-                    : 'text-primary group-hover:text-primary/80'
-                }`}>
-                  {card.label}
-                </p>
-              </Link>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {PRO_CARDS.map((card, i) => (
+              <ScrollReveal key={card.role} delay={i * 0.08}>
+                <Link
+                  href={card.href}
+                  className={`flex flex-col p-6 rounded-2xl border transition-all duration-200 group hover:shadow-md h-full ${
+                    card.isRegistered ? 'border-success/30 bg-success/5 hover:border-success/50' : 'border-border bg-bg hover:border-primary/30'
+                  }`}
+                >
+                  <span className="text-3xl mb-4 block">{card.icon}</span>
+                  <p className="font-display font-semibold text-lg text-text mb-2">{card.role}</p>
+                  <p className="text-text-muted text-sm mb-5 leading-relaxed flex-1">{card.desc}</p>
+                  <p className={`text-sm font-semibold transition-colors ${card.isRegistered ? 'text-success' : 'text-primary group-hover:text-primary/80'}`}>
+                    {card.label}
+                  </p>
+                </Link>
+              </ScrollReveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* ── POUR QUI ──────────────────────────────────────────────────────── */}
-      <section className="bg-primary/5 border-y border-border px-6 py-14 md:px-12">
-        <p className="font-display font-semibold text-xl md:text-2xl text-text text-center max-w-xl mx-auto leading-snug">
-          Pour celles et ceux qui veulent rencontrer du monde{" "}
-          <span className="text-primary">sans subir la soirée.</span>
-        </p>
+      <section className="px-4 py-14 md:px-12 bg-primary/5 border-b border-border">
+        <ScrollReveal>
+          <p className="font-display font-semibold text-xl md:text-3xl text-text text-center max-w-2xl mx-auto leading-snug">
+            Pour celles et ceux qui veulent{' '}
+            <span className="text-primary">vraiment rencontrer du monde</span>
+            {' '}— sans subir la soirée.
+          </p>
+        </ScrollReveal>
       </section>
 
       {/* ── CTA FINAL + WAITLIST ───────────────────────────────────────────── */}
-      <section className="px-6 py-16 md:px-12 md:py-24 max-w-2xl mx-auto text-center">
-        <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-3">
-          Lancement à Nice
-        </p>
-        <h2 className="font-display font-bold text-3xl md:text-4xl text-text mb-4">
-          Prêt·e à te découvrir ?
-        </h2>
-        <p className="text-text-muted mb-10 text-base max-w-sm mx-auto">
-          Fais le quiz, reçois ton profil social, rejoins une expérience à Nice.
-        </p>
+      <section className="px-4 py-20 md:px-12 md:py-28 max-w-2xl mx-auto text-center">
+        <ScrollReveal>
+          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">Lancement à {city}</p>
+          <h2 className="font-display font-bold text-3xl md:text-4xl text-text mb-4">
+            Prêt·e à te découvrir ?
+          </h2>
+          <p className="text-text-muted mb-10 text-base max-w-sm mx-auto">
+            Fais le quiz, reçois ton profil social, rejoins une soirée à {city}.
+          </p>
 
-        <Link
-          href="/onboarding"
-          className="inline-flex items-center gap-2 bg-primary text-white font-semibold text-base px-8 py-4 rounded-full shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-150 mb-12"
-        >
-          Découvre ton style
-          <span aria-hidden>→</span>
-        </Link>
+          <Link
+            href="/onboarding"
+            className="inline-flex items-center gap-2 bg-primary text-white font-display font-semibold text-base px-8 py-4 rounded-full shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 mb-12"
+          >
+            Découvre ton style →
+          </Link>
 
-        <div className="relative mb-8">
-          <div className="absolute inset-0 flex items-center" aria-hidden>
-            <div className="w-full border-t border-border" />
+          <div className="relative mb-8">
+            <div className="absolute inset-0 flex items-center" aria-hidden>
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-bg px-4 text-sm text-text-muted">ou</span>
+            </div>
           </div>
-          <div className="relative flex justify-center">
-            <span className="bg-bg px-4 text-sm text-text-muted">ou</span>
-          </div>
-        </div>
 
-        <p className="text-sm text-text-muted mb-4">
-          Pas envie de faire le quiz maintenant ? Laisse ton email, on te prévient
-          dès qu'une soirée est disponible.
-        </p>
-        <WaitlistForm />
+          <p className="text-sm text-text-muted mb-4">
+            Pas de quiz maintenant ? Laisse ton email — on te prévient dès qu'une soirée est disponible.
+          </p>
+          <WaitlistForm />
+        </ScrollReveal>
       </section>
 
       {/* ── FOOTER ────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-border px-6 py-8 md:px-12">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-text-muted">
-          <span className="font-display font-semibold text-text">Soirée Villa</span>
-          <div className="flex items-center gap-6">
-            <Link href="/charte" className="hover:text-text transition-colors">Charte</Link>
-            <Link href="/legal" className="hover:text-text transition-colors">Mentions légales</Link>
+      <footer className="border-t border-border bg-surface">
+        <div className="max-w-5xl mx-auto px-6 py-12 md:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+            {/* Brand */}
+            <div className="md:col-span-1">
+              <Link href="/" className="font-display font-bold text-lg text-text block mb-2">
+                Soirée Villa
+              </Link>
+              <p className="text-text-muted text-xs leading-relaxed">
+                Comprendre · Vivre · Oser
+              </p>
+              <p className="text-text-muted text-xs mt-2">Nice — 2026</p>
+            </div>
+
+            {/* Explorer */}
+            <div>
+              <p className="text-xs font-bold text-text uppercase tracking-widest mb-4">Explorer</p>
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  { href: '/experiences', label: 'Soirées' },
+                  { href: '/lieux', label: 'Lieux' },
+                  { href: '/fournisseurs', label: 'Fournisseurs' },
+                  { href: '/tier-list', label: 'Tier List' },
+                  { href: '/marketplace', label: 'Marketplace' },
+                ].map(l => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="text-text-muted text-sm hover:text-text transition-colors">{l.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Pro */}
+            <div>
+              <p className="text-xs font-bold text-text uppercase tracking-widest mb-4">Pro</p>
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  { href: '/organisateur/inscription', label: 'Devenir organisateur' },
+                  { href: '/lieu/inscription', label: 'Inscrire mon lieu' },
+                  { href: '/fournisseur/inscription', label: 'Inscrire ma prestation' },
+                  { href: '/marketplace', label: 'Accéder à la marketplace' },
+                ].map(l => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="text-text-muted text-sm hover:text-text transition-colors">{l.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Légal */}
+            <div>
+              <p className="text-xs font-bold text-text uppercase tracking-widest mb-4">Légal</p>
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  { href: '/charte-participant', label: 'Charte participant' },
+                  { href: '/charte-organisateur', label: 'Charte organisateur' },
+                  { href: '/mentions-legales', label: 'Mentions légales' },
+                  { href: '/contact', label: 'Contact' },
+                ].map(l => (
+                  <li key={l.href}>
+                    <Link href={l.href} className="text-text-muted text-sm hover:text-text transition-colors">{l.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-8 border-t border-border">
+            <p className="text-text-muted text-xs">© 2026 Soirée Villa — Tous droits réservés</p>
             <a
               href="https://instagram.com/soireevilla"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-text transition-colors"
+              className="text-text-muted text-xs hover:text-text transition-colors"
             >
-              Instagram
+              Instagram →
             </a>
           </div>
-          <span>© 2026 Soirée Villa</span>
         </div>
       </footer>
+
     </main>
-  );
+  )
 }

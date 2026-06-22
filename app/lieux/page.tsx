@@ -7,6 +7,15 @@ import type { Lieu } from '@/types/lieu'
 
 export const dynamic = 'force-dynamic'
 
+export const metadata = {
+  title: 'Lieux partenaires',
+  description: 'Les lieux partenaires de Soirée Villa — rooftops, lofts, ateliers et espaces privatisables.',
+  openGraph: {
+    title: 'Lieux partenaires — Soirée Villa',
+    description: 'Rooftops, lofts, ateliers — les espaces qui font les soirées mémorables.',
+  },
+}
+
 const LIEU_TYPE_LABELS: Record<string, string> = {
   salle: 'Salle', rooftop: 'Rooftop', plein_air: 'Plein air',
   bar: 'Bar', restaurant: 'Restaurant', atelier: 'Atelier', autre: 'Autre',

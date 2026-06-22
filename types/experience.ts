@@ -39,6 +39,8 @@ export type Experience = {
   status: string
   created_at: string
   axes_scores: Record<string, number> | null
+  theme?: string | null
+  city?: string
 }
 
 export type CurrentTierInfo = {

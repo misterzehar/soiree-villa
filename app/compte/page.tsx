@@ -321,7 +321,7 @@ export default async function ComptePage() {
                 href="/experiences"
                 className="inline-block bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
               >
-                Voir les expériences
+                Trouver ma soirée
               </Link>
             </div>
           ) : (

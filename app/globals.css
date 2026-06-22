@@ -17,6 +17,14 @@
     --color-warning-rgb:    250 204 21;   /* #FACC15 */
     --color-error-rgb:      248 113 113;  /* #F87171 */
 
+    /* ─── Tokens thèmes de soirée ────────────────────────────────── */
+    --color-gold-rgb:       212 175 55;   /* #D4AF37 — or chaud */
+    --color-wine-rgb:       114 47 55;    /* #722F37 — bourgogne */
+    --color-burgundy-rgb:   128 0 32;     /* #800020 — bordeaux théâtre */
+    --color-electric-rgb:   0 255 255;    /* #00FFFF — cyan électrique */
+    --color-terracotta-rgb: 188 107 74;   /* #BC6B4A */
+    --color-acid-rgb:       158 220 58;   /* #9EDC3A — acid green */
+
     /* ─── Ombres ─────────────────────────────────────────────────── */
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
     --shadow-md: 0 4px 12px rgba(0,0,0,0.08);

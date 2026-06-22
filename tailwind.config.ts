@@ -24,6 +24,13 @@ const config: Config = {
         success:      "rgb(var(--color-success-rgb) / <alpha-value>)",
         warning:      "rgb(var(--color-warning-rgb) / <alpha-value>)",
         error:        "rgb(var(--color-error-rgb) / <alpha-value>)",
+        // Thèmes de soirée
+        gold:         "rgb(var(--color-gold-rgb) / <alpha-value>)",
+        wine:         "rgb(var(--color-wine-rgb) / <alpha-value>)",
+        burgundy:     "rgb(var(--color-burgundy-rgb) / <alpha-value>)",
+        electric:     "rgb(var(--color-electric-rgb) / <alpha-value>)",
+        terracotta:   "rgb(var(--color-terracotta-rgb) / <alpha-value>)",
+        acid:         "rgb(var(--color-acid-rgb) / <alpha-value>)",
         // shadcn interop
         background:   "var(--background)",
         foreground:   "var(--foreground)",
@@ -66,7 +73,8 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       transitionTimingFunction: {
-        swipe: "cubic-bezier(0.22, 1, 0.36, 1)",
+        swipe:    "cubic-bezier(0.22, 1, 0.36, 1)",
+        premium:  "cubic-bezier(0.16, 1, 0.3, 1)",
       },
       keyframes: {
         "fade-in": {

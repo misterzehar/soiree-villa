@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { PROFILES } from '@/constants/profiles'
 import { getCurrentTierInfo, formatPrice } from '@/lib/pricing'
 import { getGradientForExperience } from '@/lib/profile-colors'
+import { getThemeStyle } from '@/lib/theme-style'
 import type { Experience } from '@/types/experience'
 
 function formatDate(dateStr: string): string {
@@ -32,6 +33,7 @@ export function ExperienceCard({
 }) {
   const tierInfo = getCurrentTierInfo(experience)
   const gradient = getGradientForExperience(experience.compatible_profiles)
+  const themeStyle = getThemeStyle(experience.theme ?? null)
 
   return (
     <motion.div
@@ -41,7 +43,7 @@ export function ExperienceCard({
     >
       <Link
         href={`/experiences/${experience.id}`}
-        className="block bg-surface rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 active:scale-[0.99]"
+        className={`block bg-surface rounded-2xl shadow-sm overflow-hidden hover:shadow-md hover:scale-[1.01] transition-all duration-200 active:scale-[0.99] ${themeStyle ? themeStyle.accentBorder + ' border' : ''}`}
       >
         {/* Cover image / gradient fallback */}
         <div className="relative w-full aspect-video overflow-hidden">
@@ -49,10 +51,17 @@ export function ExperienceCard({
             <img
               src={experience.cover_image_url}
               alt={experience.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className={`w-full h-full bg-gradient-to-br ${gradient}`} />
+            <div className={`w-full h-full bg-gradient-to-br ${themeStyle ? themeStyle.gradient : gradient}`} />
+          )}
+
+          {/* Theme badge — bottom left on image */}
+          {themeStyle && (
+            <span className={`absolute bottom-3 left-3 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full backdrop-blur-sm border ${themeStyle.badgeBg} ${themeStyle.badgeText} border-white/10`}>
+              {themeStyle.emoji} {themeStyle.label}
+            </span>
           )}
 
           {/* Match score badge — top left */}
