@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { WaitlistForm } from '@/components/landing/waitlist-form'
@@ -7,7 +8,7 @@ import { ScrollReveal } from '@/components/landing/scroll-reveal'
 import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
 import { getActorProfiles } from '@/lib/actors'
 import { getCity } from '@/lib/city'
-import { fetchTierData, TIER_CONFIG } from '@/lib/tier'
+import { fetchTierData } from '@/lib/tier'
 import type { ActorProfiles } from '@/lib/actors'
 import type { PricingTier, Experience } from '@/types/experience'
 
@@ -136,7 +137,7 @@ export default async function HomePage() {
   ]
 
   return (
-    <main className="bg-bg min-h-screen">
+    <main id="main-content" className="bg-bg min-h-screen">
 
       {/* ── HERO ──────────────────────────────────────────────────────── */}
       <section className="relative flex flex-col min-h-[100svh] overflow-hidden">
@@ -170,10 +171,13 @@ export default async function HomePage() {
                 <div className="relative overflow-hidden">
                   <div className="relative w-full aspect-video overflow-hidden">
                     {obsession.cover_image_url ? (
-                      <img
+                      <Image
                         src={obsession.cover_image_url}
-                        alt={obsession.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                        alt=""
+                        fill
+                        priority
+                        sizes="(max-width: 768px) calc(100vw - 32px), 900px"
+                        className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                       />
                     ) : (
                       <div className="w-full h-full bg-canvas" />
@@ -182,16 +186,16 @@ export default async function HomePage() {
                   </div>
 
                   <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-10">
-                    <p className="text-[10px] font-medium tracking-[0.25em] uppercase text-white/40">
+                    <p className="text-[10px] font-medium tracking-[0.25em] uppercase text-white/55">
                       Obsession de la semaine
                     </p>
                     <div>
-                      <p className="text-[11px] font-medium tracking-[0.15em] uppercase text-white/40 mb-3 capitalize">
+                      <p className="text-[11px] font-medium tracking-[0.15em] uppercase text-white/55 mb-3 capitalize">
                         {dateFmt} · {obsession.venue_name}
                         {tier && ` · À partir de ${Math.round(tier.price_cents / 100)} €`}
                       </p>
                       <h2
-                        className="font-display font-light text-white mb-6 leading-none"
+                        className="font-display font-light text-white mb-6 leading-none text-balance"
                         style={{ fontSize: 'clamp(1.75rem, 4.5vw, 3.5rem)', letterSpacing: '-0.03em' }}
                       >
                         {obsession.title}
@@ -214,7 +218,7 @@ export default async function HomePage() {
         <ScrollReveal className="mb-10">
           <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-2">Explorer</p>
           <h2
-            className="font-display font-light text-text"
+            className="font-display font-light text-text text-balance"
             style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
           >
             Soirées, lieux et prestataires à {city}
@@ -228,23 +232,37 @@ export default async function HomePage() {
               category: 'Soirées',
               title: exp > 0 ? `${exp} expérience${exp > 1 ? 's' : ''} disponible${exp > 1 ? 's' : ''}` : 'Bientôt disponibles',
               cta: 'Trouver ma soirée',
+              image: '/explore-soirees.jpg',
+              alt: 'Table dressée aux bougies pour un dîner intime',
             },
             {
               href: '/lieux',
               category: 'Lieux',
               title: lieux > 0 ? `${lieux} lieu${lieux > 1 ? 'x' : ''} partenaire${lieux > 1 ? 's' : ''}` : 'Lieux partenaires',
               cta: 'Explorer les lieux',
+              image: '/explore-lieux.jpg',
+              alt: 'Patio méditerranéen avec plantes en pot au coucher du soleil',
             },
             {
               href: '/fournisseurs',
               category: 'Prestataires',
               title: fournisseurs > 0 ? `${fournisseurs} prestataire${fournisseurs > 1 ? 's' : ''}` : 'DJ, traiteur, déco',
               cta: 'Voir la marketplace',
+              image: '/explore-prestataires.jpg',
+              alt: 'Table de mixage éclairée en gros plan',
             },
           ] as const).map((card, i) => (
             <ScrollReveal key={card.href} delay={i * 0.1}>
               <Link href={card.href} className="block group">
-                <div className="aspect-[4/3] w-full overflow-hidden bg-border/30 mb-4 transition-colors duration-300 group-hover:bg-border/50" />
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-border/30 mb-4">
+                  <Image
+                    src={card.image}
+                    alt={card.alt}
+                    fill
+                    sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 40px), 300px"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                </div>
                 <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text-muted mb-2">
                   {card.category}
                 </p>
@@ -265,7 +283,6 @@ export default async function HomePage() {
 
       {/* ── TIER S ────────────────────────────────────────────────────── */}
       {tierSExps.length > 0 && (() => {
-        const cfg = TIER_CONFIG['S']
         return (
           <section className="px-4 py-14 md:px-12 md:py-20 border-y border-border">
             <div className="max-w-5xl mx-auto">
@@ -275,7 +292,7 @@ export default async function HomePage() {
                     Classement · Tier S
                   </p>
                   <h2
-                    className="font-display font-light text-text"
+                    className="font-display font-light text-text text-balance"
                     style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2.5rem)', letterSpacing: '-0.03em' }}
                   >
                     Les meilleures soirées à {city}
@@ -283,7 +300,7 @@ export default async function HomePage() {
                 </div>
                 <Link
                   href="/tier-list"
-                  className="text-[11px] tracking-[0.08em] uppercase text-text-muted hover:text-text transition-colors duration-200 shrink-0 hidden sm:block"
+                  className="text-[11px] tracking-[0.08em] uppercase text-text-muted hover:text-text transition-colors duration-200 shrink-0 hidden sm:inline-flex sm:items-center py-2"
                 >
                   Classement complet →
                 </Link>
@@ -296,18 +313,20 @@ export default async function HomePage() {
                     <ScrollReveal key={exp.id} delay={i * 0.08}>
                       <Link href={`/experiences/${exp.id}`} className="block group">
                         {exp.cover_image_url ? (
-                          <div className="aspect-video w-full overflow-hidden mb-4">
-                            <img
+                          <div className="relative aspect-video w-full overflow-hidden mb-4">
+                            <Image
                               src={exp.cover_image_url}
-                              alt={exp.title}
-                              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                              alt=""
+                              fill
+                              sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 40px), 300px"
+                              className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
                             />
                           </div>
                         ) : (
                           <div className="aspect-video w-full mb-4 bg-border/30" />
                         )}
                         <p
-                          className="font-display font-medium text-text text-sm group-hover:text-primary transition-colors duration-200 mb-1"
+                          className="font-display font-medium text-text text-sm group-hover:text-primary transition-colors duration-200 mb-1 line-clamp-2"
                           style={{ letterSpacing: '-0.01em' }}
                         >
                           {exp.title}
@@ -333,9 +352,8 @@ export default async function HomePage() {
       {/* ── COMMENT ÇA MARCHE ─────────────────────────────────────────── */}
       <section className="px-4 py-16 md:px-12 md:py-28 max-w-5xl mx-auto">
         <ScrollReveal className="mb-16">
-          <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-3">Comment ça marche</p>
           <h2
-            className="font-display font-light text-text"
+            className="font-display font-light text-text text-balance"
             style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
           >
             De 0 à ta meilleure soirée.
@@ -388,9 +406,8 @@ export default async function HomePage() {
       <section className="bg-canvas px-4 py-20 md:px-12 md:py-28">
         <div className="max-w-5xl mx-auto">
           <ScrollReveal className="mb-14">
-            <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-white/30 mb-3">Notre signature</p>
             <h2
-              className="font-display font-light text-white"
+              className="font-display font-light text-white text-balance"
               style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
             >
               Un parcours en 3 actes.
@@ -401,17 +418,17 @@ export default async function HomePage() {
             {ACTS.map(({ number, verb, tagline, desc }, i) => (
               <ScrollReveal key={verb} delay={i * 0.1}>
                 <div>
-                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/30 mb-4">
+                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/50 mb-4">
                     {number} · {tagline}
                   </p>
                   <div className="w-6 h-px bg-gold mb-5" />
                   <h3
-                    className="font-display font-light text-white mb-4"
+                    className="font-display font-light text-white mb-4 text-balance"
                     style={{ fontSize: 'clamp(1.3rem, 3vw, 2rem)', letterSpacing: '-0.025em' }}
                   >
                     {verb}
                   </h3>
-                  <p className="text-white/45 text-sm leading-relaxed">{desc}</p>
+                  <p className="text-white/55 text-sm leading-relaxed">{desc}</p>
                 </div>
               </ScrollReveal>
             ))}
@@ -423,9 +440,8 @@ export default async function HomePage() {
       <section className="px-4 py-16 md:px-12 md:py-24 border-b border-border">
         <div className="max-w-5xl mx-auto">
           <ScrollReveal className="mb-10">
-            <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-3">Partenaires</p>
             <h2
-              className="font-display font-light text-text"
+              className="font-display font-light text-text text-balance"
               style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
             >
               Vous travaillez dans l&apos;événementiel ?
@@ -475,7 +491,7 @@ export default async function HomePage() {
               Lancement à {city}
             </p>
             <h2
-              className="font-display font-light text-text mb-8"
+              className="font-display font-light text-text mb-8 text-balance"
               style={{ fontSize: 'clamp(1.75rem, 4.5vw, 3.5rem)', letterSpacing: '-0.035em', lineHeight: 1.1 }}
             >
               Prêt·e à te découvrir ?
@@ -485,7 +501,7 @@ export default async function HomePage() {
             </p>
             <Link
               href="/onboarding"
-              className="inline-flex items-center gap-3 border border-text/20 text-text text-[11px] font-medium tracking-[0.12em] uppercase px-8 py-3.5 hover:bg-text/[0.04] transition-colors duration-300 mb-14"
+              className="inline-flex items-center gap-3 border border-text/20 text-text text-[11px] font-medium tracking-[0.12em] uppercase px-8 py-4 hover:bg-text/[0.04] focus-visible:outline-none focus-visible:border-text/60 transition-colors duration-300 mb-14"
             >
               Découvrir mon profil
               <span aria-hidden className="tracking-normal text-primary">→</span>
@@ -534,7 +550,7 @@ export default async function HomePage() {
                   { href: '/marketplace', label: 'Marketplace' },
                 ].map(l => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-text-muted text-xs hover:text-text transition-colors duration-200">
+                    <Link href={l.href} className="block py-1 text-text-muted text-xs hover:text-text transition-colors duration-200">
                       {l.label}
                     </Link>
                   </li>
@@ -553,7 +569,7 @@ export default async function HomePage() {
                   { href: '/marketplace', label: 'Marketplace' },
                 ].map(l => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-text-muted text-xs hover:text-text transition-colors duration-200">
+                    <Link href={l.href} className="block py-1 text-text-muted text-xs hover:text-text transition-colors duration-200">
                       {l.label}
                     </Link>
                   </li>
@@ -572,7 +588,7 @@ export default async function HomePage() {
                   { href: '/contact', label: 'Contact' },
                 ].map(l => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-text-muted text-xs hover:text-text transition-colors duration-200">
+                    <Link href={l.href} className="block py-1 text-text-muted text-xs hover:text-text transition-colors duration-200">
                       {l.label}
                     </Link>
                   </li>
@@ -589,7 +605,7 @@ export default async function HomePage() {
               href="https://instagram.com/soireevilla"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-text-muted text-[10px] tracking-[0.1em] hover:text-text transition-colors duration-200"
+              className="py-2 text-text-muted text-[10px] tracking-[0.1em] hover:text-text transition-colors duration-200"
             >
               Instagram →
             </a>
