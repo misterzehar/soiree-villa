@@ -31,6 +31,7 @@ const config: Config = {
         electric:     "rgb(var(--color-electric-rgb) / <alpha-value>)",
         terracotta:   "rgb(var(--color-terracotta-rgb) / <alpha-value>)",
         acid:         "rgb(var(--color-acid-rgb) / <alpha-value>)",
+        canvas:       "rgb(var(--color-canvas-rgb) / <alpha-value>)",
         // shadcn interop
         background:   "var(--background)",
         foreground:   "var(--foreground)",

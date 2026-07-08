@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { cookies } from 'next/headers'
-import { Heart, Users, Zap } from 'lucide-react'
 import { WaitlistForm } from '@/components/landing/waitlist-form'
 import { SiteHeader } from '@/components/site-header'
 import { HeroAnimated } from '@/components/landing/hero-animated'
@@ -16,19 +15,16 @@ export const dynamic = 'force-dynamic'
 
 const HOW_IT_WORKS = [
   {
-    icon: Heart,
     step: 'Comprendre',
     title: '15 questions, ton style révélé',
-    desc: 'Le quiz "Tu préfères ?" cerne ta façon d\'être en groupe. En moins d\'une minute.',
+    desc: "Le quiz \"Tu préfères ?\" cerne ta façon d'être en groupe. En moins d'une minute.",
   },
   {
-    icon: Users,
     step: 'Vivre',
     title: 'Des soirées qui te matchent',
-    desc: 'On te propose des expériences animées, sélectionnées pour ton profil. Rien d\'au hasard.',
+    desc: "On te propose des expériences animées, sélectionnées pour ton profil. Rien d'au hasard.",
   },
   {
-    icon: Zap,
     step: 'Oser',
     title: 'Des liens qui durent',
     desc: 'Chaque soirée suit un parcours en 3 actes. Tu repartiras avec de vraies rencontres.',
@@ -46,7 +42,7 @@ const ACTS = [
     number: '02',
     verb: 'Vivre',
     tagline: 'Plat',
-    desc: 'Le groupe agit ensemble. Une activité, un défi, un moment concret. Le lien se tisse dans l\'action.',
+    desc: "Le groupe agit ensemble. Une activité, un défi, un moment concret. Le lien se tisse dans l'action.",
   },
   {
     number: '03',
@@ -117,27 +113,24 @@ export default async function HomePage() {
 
   const PRO_CARDS = [
     {
-      icon: '🎩',
       role: 'Organisateur',
-      desc: 'Crée et anime des soirées structurées. Accède à notre réseau de lieux et fournisseurs.',
+      desc: "Crée et anime des soirées structurées. Accède à notre réseau de lieux et fournisseurs.",
       href: profiles.hasOrga ? '/organisateur' : '/organisateur/inscription',
-      label: profiles.hasOrga ? 'Accéder à mon espace →' : 'Devenir organisateur',
+      label: profiles.hasOrga ? 'Accéder à mon espace' : 'Devenir organisateur',
       isRegistered: profiles.hasOrga,
     },
     {
-      icon: '🏠',
       role: 'Lieu',
-      desc: 'Propose ton espace aux organisateurs. Visibilité immédiate auprès des créateurs d\'événements.',
+      desc: "Propose ton espace aux organisateurs. Visibilité immédiate auprès des créateurs d'événements.",
       href: profiles.hasLieu ? '/lieu' : '/lieu/inscription',
-      label: profiles.hasLieu ? 'Accéder à mon espace →' : 'Inscrire mon lieu',
+      label: profiles.hasLieu ? 'Accéder à mon espace' : 'Inscrire mon lieu',
       isRegistered: profiles.hasLieu,
     },
     {
-      icon: '🎵',
-      role: 'Fournisseur',
+      role: 'Prestataire',
       desc: 'DJ, traiteur, déco, animation — rejoins la marketplace et sois contacté directement.',
       href: profiles.hasFourn ? '/fournisseur' : '/fournisseur/inscription',
-      label: profiles.hasFourn ? 'Accéder à mon espace →' : 'Inscrire ma prestation',
+      label: profiles.hasFourn ? 'Accéder à mon espace' : 'Inscrire ma prestation',
       isRegistered: profiles.hasFourn,
     },
   ]
@@ -145,191 +138,188 @@ export default async function HomePage() {
   return (
     <main className="bg-bg min-h-screen">
 
-      {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="relative flex flex-col min-h-screen overflow-hidden">
-        {/* Cinematic background — rooftop crépuscule placeholder */}
+      {/* ── HERO ──────────────────────────────────────────────────────── */}
+      <section className="relative flex flex-col min-h-[100svh] overflow-hidden">
+        <div aria-hidden className="absolute inset-0 bg-canvas" />
         <div
           aria-hidden
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(160deg, #0d0d1a 0%, #1a1030 35%, #2a1a3e 55%, #0a1520 100%)',
+            background: 'radial-gradient(ellipse 70% 50% at 68% 78%, rgb(var(--color-gold-rgb) / 0.06), transparent)',
           }}
         />
-        {/* Atmospheric overlays */}
-        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_25%_40%,rgba(74,108,247,0.22),transparent)]" />
-        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_75%_65%,rgba(255,122,89,0.15),transparent)]" />
-        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_40%_30%_at_50%_85%,rgba(162,89,255,0.1),transparent)]" />
-        {/* Bottom fade to bg */}
-        <div aria-hidden className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-bg to-transparent" />
+        <div aria-hidden className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-bg to-transparent" />
 
-        <nav className="relative z-10 px-6 pt-6 md:px-12 md:pt-8">
+        <nav className="relative z-10 px-6 pt-6 md:px-16 md:pt-8">
           <SiteHeader variant="dark" />
         </nav>
 
         <HeroAnimated />
-
-        <div aria-hidden className="relative z-10 flex justify-center pb-8 text-white/20 text-xs animate-bounce">↓</div>
       </section>
 
-      {/* ── OBSESSION DE LA SEMAINE ──────────────────────────────────────── */}
+      {/* ── OBSESSION DE LA SEMAINE ───────────────────────────────────── */}
       {obsession && (() => {
         const tier = currentPrice(obsession.pricing_tiers)
         const dateFmt = new Date(obsession.date).toLocaleDateString('fr-FR', {
           weekday: 'long', day: 'numeric', month: 'long',
         })
         return (
-          <section className="px-4 py-12 md:px-12 md:py-16 max-w-5xl mx-auto">
+          <section className="px-4 py-14 md:px-12 md:py-20 max-w-5xl mx-auto">
             <ScrollReveal>
-              <div className="relative rounded-3xl overflow-hidden shadow-xl border border-border group cursor-pointer">
-                {/* Full-bleed image */}
-                {obsession.cover_image_url ? (
-                  <div className="relative w-full aspect-[16/7] overflow-hidden">
-                    <img
-                      src={obsession.cover_image_url}
-                      alt={obsession.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    {/* Gradient overlay — text at bottom */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                  </div>
-                ) : (
-                  <div className="relative w-full aspect-[16/7] overflow-hidden"
-                    style={{ background: 'linear-gradient(135deg, #1a0533 0%, #2d1a6e 50%, #4A6CF7 100%)' }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  </div>
-                )}
-
-                {/* Overlay content */}
-                <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-8">
-                  <div className="flex items-start justify-between">
-                    <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/20">
-                      ⭐ Obsession de la semaine
-                    </span>
-                    {tier && (
-                      <span className="bg-white/10 backdrop-blur-md text-white font-display font-bold text-lg px-3 py-1 rounded-xl border border-white/20">
-                        {Math.round(tier.price_cents / 100)} €
-                      </span>
+              <Link href={`/experiences/${obsession.id}`} className="block group">
+                <div className="relative overflow-hidden">
+                  <div className="relative w-full aspect-video overflow-hidden">
+                    {obsession.cover_image_url ? (
+                      <img
+                        src={obsession.cover_image_url}
+                        alt={obsession.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-canvas" />
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-canvas/90 via-canvas/30 to-transparent" />
                   </div>
 
-                  <div>
-                    <p className="text-white/60 text-xs uppercase tracking-widest mb-2 capitalize">{dateFmt} · {obsession.venue_name}</p>
-                    <h2 className="font-display font-bold text-2xl md:text-3xl text-white mb-3 leading-tight">
-                      {obsession.title}
-                    </h2>
-                    <p className="text-white/70 text-sm leading-relaxed mb-4 max-w-xl line-clamp-2">
-                      {obsession.description}
+                  <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-10">
+                    <p className="text-[10px] font-medium tracking-[0.25em] uppercase text-white/40">
+                      Obsession de la semaine
                     </p>
-                    <Link
-                      href={`/experiences/${obsession.id}`}
-                      className="inline-flex items-center gap-2 bg-white text-text font-semibold text-sm px-6 py-3 rounded-full hover:bg-white/90 transition-colors duration-200"
-                    >
-                      Réserve ta place →
-                    </Link>
+                    <div>
+                      <p className="text-[11px] font-medium tracking-[0.15em] uppercase text-white/40 mb-3 capitalize">
+                        {dateFmt} · {obsession.venue_name}
+                        {tier && ` · À partir de ${Math.round(tier.price_cents / 100)} €`}
+                      </p>
+                      <h2
+                        className="font-display font-light text-white mb-6 leading-none"
+                        style={{ fontSize: 'clamp(1.75rem, 4.5vw, 3.5rem)', letterSpacing: '-0.03em' }}
+                      >
+                        {obsession.title}
+                      </h2>
+                      <span className="inline-flex items-center gap-3 border border-white/20 text-white text-[11px] font-medium tracking-[0.12em] uppercase px-6 py-3 hover:bg-white/[0.07] transition-colors duration-300">
+                        Réserver une place
+                        <span aria-hidden className="text-gold tracking-normal normal-case">→</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             </ScrollReveal>
           </section>
         )
       })()}
 
-      {/* ── EXPLORER ─────────────────────────────────────────────────────── */}
-      <section className="px-4 py-14 md:px-12 md:py-20 max-w-5xl mx-auto">
-        <ScrollReveal className="text-center mb-10">
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">Explorer</p>
-          <h2 className="font-display font-bold text-3xl md:text-4xl text-text mb-2">
-            Tout Soirée Villa à {city}
+      {/* ── EXPLORER ──────────────────────────────────────────────────── */}
+      <section className="px-4 pb-14 md:px-12 md:pb-20 max-w-5xl mx-auto">
+        <ScrollReveal className="mb-10">
+          <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-2">Explorer</p>
+          <h2
+            className="font-display font-light text-text"
+            style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
+          >
+            Soirées, lieux et prestataires à {city}
           </h2>
-          <p className="text-text-muted text-base">Soirées animées, lieux et prestataires partenaires</p>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          {([
             {
               href: '/experiences',
-              emoji: '🎉',
-              title: 'Soirées',
-              desc: exp > 0 ? `${exp} expérience${exp > 1 ? 's' : ''} disponible${exp > 1 ? 's' : ''}` : 'Bientôt disponibles',
+              category: 'Soirées',
+              title: exp > 0 ? `${exp} expérience${exp > 1 ? 's' : ''} disponible${exp > 1 ? 's' : ''}` : 'Bientôt disponibles',
               cta: 'Trouver ma soirée',
             },
             {
               href: '/lieux',
-              emoji: '🏠',
-              title: 'Lieux',
-              desc: lieux > 0 ? `${lieux} lieu${lieux > 1 ? 'x' : ''} partenaire${lieux > 1 ? 's' : ''}` : 'Lieux partenaires',
+              category: 'Lieux',
+              title: lieux > 0 ? `${lieux} lieu${lieux > 1 ? 'x' : ''} partenaire${lieux > 1 ? 's' : ''}` : 'Lieux partenaires',
               cta: 'Explorer les lieux',
             },
             {
               href: '/fournisseurs',
-              emoji: '🎵',
-              title: 'Fournisseurs',
-              desc: fournisseurs > 0 ? `${fournisseurs} prestataire${fournisseurs > 1 ? 's' : ''}` : 'DJ, traiteur, déco',
+              category: 'Prestataires',
+              title: fournisseurs > 0 ? `${fournisseurs} prestataire${fournisseurs > 1 ? 's' : ''}` : 'DJ, traiteur, déco',
               cta: 'Voir la marketplace',
             },
-          ].map((card, i) => (
-            <ScrollReveal key={card.href} delay={i * 0.08}>
-              <Link
-                href={card.href}
-                className="relative flex flex-col gap-4 bg-surface border border-border rounded-2xl p-6 overflow-hidden hover:border-primary/30 hover:shadow-lg transition-all duration-300 group h-full"
-              >
-                {/* Glassmorphism hover tint */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-primary/0 group-hover:from-primary/4 group-hover:to-transparent transition-all duration-500 rounded-2xl" />
-                <span className="relative text-4xl">{card.emoji}</span>
-                <div className="relative flex-1">
-                  <p className="font-display font-semibold text-xl text-text group-hover:text-primary transition-colors duration-200 mb-1">
-                    {card.title}
-                  </p>
-                  <p className="text-text-muted text-sm leading-relaxed">{card.desc}</p>
-                </div>
-                <p className="relative text-primary text-sm font-semibold group-hover:gap-2 transition-all">{card.cta} →</p>
+          ] as const).map((card, i) => (
+            <ScrollReveal key={card.href} delay={i * 0.1}>
+              <Link href={card.href} className="block group">
+                <div className="aspect-[4/3] w-full overflow-hidden bg-border/30 mb-4 transition-colors duration-300 group-hover:bg-border/50" />
+                <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text-muted mb-2">
+                  {card.category}
+                </p>
+                <p
+                  className="font-display font-medium text-text mb-1 group-hover:text-primary transition-colors duration-200"
+                  style={{ letterSpacing: '-0.01em' }}
+                >
+                  {card.title}
+                </p>
+                <p className="text-[11px] tracking-[0.08em] uppercase text-text-muted group-hover:text-primary transition-colors duration-200 mt-3">
+                  {card.cta} →
+                </p>
               </Link>
             </ScrollReveal>
           ))}
         </div>
       </section>
 
-      {/* ── TIER S BANDEAU ───────────────────────────────────────────────── */}
+      {/* ── TIER S ────────────────────────────────────────────────────── */}
       {tierSExps.length > 0 && (() => {
         const cfg = TIER_CONFIG['S']
         return (
-          <section className="px-4 py-12 md:px-12 border-y border-border bg-surface">
+          <section className="px-4 py-14 md:px-12 md:py-20 border-y border-border">
             <div className="max-w-5xl mx-auto">
-              <ScrollReveal className="flex items-end justify-between mb-6 gap-4">
+              <ScrollReveal className="mb-8 flex items-end justify-between gap-4">
                 <div>
-                  <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border mb-2 ${cfg.bg} ${cfg.color}`}>
-                    <span className="font-display">S</span> Tier — Top 10%
-                  </span>
-                  <h2 className="font-display font-bold text-2xl text-text">Les meilleures soirées à {city}</h2>
+                  <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-2">
+                    Classement · Tier S
+                  </p>
+                  <h2
+                    className="font-display font-light text-text"
+                    style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2.5rem)', letterSpacing: '-0.03em' }}
+                  >
+                    Les meilleures soirées à {city}
+                  </h2>
                 </div>
-                <Link href="/tier-list" className="text-sm text-primary font-semibold hover:underline shrink-0 hidden sm:block">
+                <Link
+                  href="/tier-list"
+                  className="text-[11px] tracking-[0.08em] uppercase text-text-muted hover:text-text transition-colors duration-200 shrink-0 hidden sm:block"
+                >
                   Classement complet →
                 </Link>
               </ScrollReveal>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 {tierSExps.map((exp, i) => {
                   const tier = (exp.pricing_tiers as PricingTier[]).find(t => t.quantity > 0) ?? (exp.pricing_tiers as PricingTier[])[0]
                   return (
                     <ScrollReveal key={exp.id} delay={i * 0.08}>
-                      <Link
-                        href={`/experiences/${exp.id}`}
-                        className="block bg-bg rounded-2xl overflow-hidden border border-border hover:shadow-md hover:border-primary/20 transition-all group"
-                      >
+                      <Link href={`/experiences/${exp.id}`} className="block group">
                         {exp.cover_image_url ? (
-                          <div className="aspect-video w-full overflow-hidden">
-                            <img src={exp.cover_image_url} alt={exp.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <div className="aspect-video w-full overflow-hidden mb-4">
+                            <img
+                              src={exp.cover_image_url}
+                              alt={exp.title}
+                              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                            />
                           </div>
                         ) : (
-                          <div className={`aspect-video w-full flex items-center justify-center ${cfg.bg}`}>
-                            <span className={`font-display font-bold text-5xl opacity-20 ${cfg.color}`}>S</span>
-                          </div>
+                          <div className="aspect-video w-full mb-4 bg-border/30" />
                         )}
-                        <div className="p-4">
-                          <p className="font-display font-semibold text-text text-sm group-hover:text-primary transition-colors mb-1">{exp.title}</p>
-                          <p className="text-text-muted text-xs">{new Date(exp.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {exp.venue_name}</p>
-                          {tier && <p className={`mt-2 text-sm font-bold ${cfg.color}`}>{Math.round(tier.price_cents / 100)} €</p>}
-                        </div>
+                        <p
+                          className="font-display font-medium text-text text-sm group-hover:text-primary transition-colors duration-200 mb-1"
+                          style={{ letterSpacing: '-0.01em' }}
+                        >
+                          {exp.title}
+                        </p>
+                        <p className="text-text-muted text-xs">
+                          {new Date(exp.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {exp.venue_name}
+                        </p>
+                        {tier && (
+                          <p className="mt-1.5 text-xs text-text-muted">
+                            {Math.round(tier.price_cents / 100)} €
+                          </p>
+                        )}
                       </Link>
                     </ScrollReveal>
                   )
@@ -340,31 +330,53 @@ export default async function HomePage() {
         )
       })()}
 
-      {/* ── COMMENT ÇA MARCHE ─────────────────────────────────────────────── */}
-      <section className="px-4 py-16 md:px-12 md:py-24 max-w-5xl mx-auto">
-        <ScrollReveal className="text-center mb-14">
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">Comment ça marche</p>
-          <h2 className="font-display font-bold text-3xl md:text-4xl text-text mb-3">
+      {/* ── COMMENT ÇA MARCHE ─────────────────────────────────────────── */}
+      <section className="px-4 py-16 md:px-12 md:py-28 max-w-5xl mx-auto">
+        <ScrollReveal className="mb-16">
+          <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-3">Comment ça marche</p>
+          <h2
+            className="font-display font-light text-text"
+            style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
+          >
             De 0 à ta meilleure soirée.
           </h2>
-          <p className="text-text-muted text-base max-w-sm mx-auto">
-            Trois étapes, moins de 60 secondes pour la première.
-          </p>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {HOW_IT_WORKS.map(({ icon: Icon, step, title, desc }, i) => (
+        <div className="flex flex-col">
+          {HOW_IT_WORKS.map(({ step, title, desc }, i) => (
             <ScrollReveal key={step} delay={i * 0.1}>
-              <div className="flex flex-col gap-4 p-6 bg-surface rounded-2xl border border-border h-full hover:shadow-md hover:border-primary/20 transition-all duration-300">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon size={18} className="text-primary" strokeWidth={1.5} />
-                  </div>
-                  <p className="text-xs font-bold text-primary uppercase tracking-widest">{step}</p>
+              <div className="flex items-start gap-6 md:gap-12">
+                {/* Outline number */}
+                <div className="flex flex-col items-center shrink-0">
+                  <span
+                    aria-hidden
+                    className="font-display font-bold select-none"
+                    style={{
+                      fontSize: 'clamp(5rem, 12vw, 10rem)',
+                      lineHeight: 0.88,
+                      letterSpacing: '-0.04em',
+                      WebkitTextStroke: '1.5px rgb(var(--color-border-rgb))',
+                      color: 'transparent',
+                      display: 'block',
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                  {i < HOW_IT_WORKS.length - 1 && (
+                    <div className="w-px h-12 bg-border mt-3" />
+                  )}
                 </div>
-                <div>
-                  <h3 className="font-display font-semibold text-lg text-text mb-2 leading-snug">{title}</h3>
-                  <p className="text-sm text-text-muted leading-relaxed">{desc}</p>
+
+                {/* Text */}
+                <div className="pt-2 pb-12 md:pb-16">
+                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-primary mb-2">{step}</p>
+                  <h3
+                    className="font-display font-medium text-text mb-3"
+                    style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)', letterSpacing: '-0.02em' }}
+                  >
+                    {title}
+                  </h3>
+                  <p className="text-text-muted text-sm leading-relaxed max-w-xs md:max-w-sm">{desc}</p>
                 </div>
               </div>
             </ScrollReveal>
@@ -372,33 +384,34 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── LES 3 ACTES ───────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden px-4 py-20 md:px-12 md:py-28"
-        style={{ background: 'linear-gradient(160deg, #0d0d1a 0%, #1a0f2e 50%, #0f1a2e 100%)' }}
-      >
-        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_50%,rgba(74,108,247,0.15),transparent)]" />
-        <div className="relative max-w-5xl mx-auto">
-          <ScrollReveal className="text-center mb-14">
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">Notre signature</p>
-            <h2 className="font-display font-bold text-3xl md:text-4xl text-white mb-3">
+      {/* ── LES 3 ACTES ───────────────────────────────────────────────── */}
+      <section className="bg-canvas px-4 py-20 md:px-12 md:py-28">
+        <div className="max-w-5xl mx-auto">
+          <ScrollReveal className="mb-14">
+            <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-white/30 mb-3">Notre signature</p>
+            <h2
+              className="font-display font-light text-white"
+              style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
+            >
               Un parcours en 3 actes.
             </h2>
-            <p className="text-white/50 text-base max-w-sm mx-auto">
-              On ne te jette pas à l'eau. Chaque soirée suit un rythme naturel.
-            </p>
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
             {ACTS.map(({ number, verb, tagline, desc }, i) => (
               <ScrollReveal key={verb} delay={i * 0.1}>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-baseline gap-3">
-                    <span className="font-mono text-xs text-white/20 tabular-nums">{number}</span>
-                    <span className="text-white/40 text-xs uppercase tracking-widest">{tagline}</span>
-                  </div>
-                  <h3 className="font-display font-bold text-2xl text-white">{verb}</h3>
-                  <div className="w-8 h-px bg-primary" />
-                  <p className="text-white/55 text-sm leading-relaxed">{desc}</p>
+                <div>
+                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/30 mb-4">
+                    {number} · {tagline}
+                  </p>
+                  <div className="w-6 h-px bg-gold mb-5" />
+                  <h3
+                    className="font-display font-light text-white mb-4"
+                    style={{ fontSize: 'clamp(1.3rem, 3vw, 2rem)', letterSpacing: '-0.025em' }}
+                  >
+                    {verb}
+                  </h3>
+                  <p className="text-white/45 text-sm leading-relaxed">{desc}</p>
                 </div>
               </ScrollReveal>
             ))}
@@ -406,31 +419,30 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── TU ES UN PRO ? ────────────────────────────────────────────────── */}
-      <section className="px-4 py-16 md:px-12 md:py-24 bg-surface border-y border-border">
+      {/* ── PARTENAIRES PRO ───────────────────────────────────────────── */}
+      <section className="px-4 py-16 md:px-12 md:py-24 border-b border-border">
         <div className="max-w-5xl mx-auto">
-          <ScrollReveal className="text-center mb-10">
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">Partenaires</p>
-            <h2 className="font-display font-bold text-3xl md:text-4xl text-text mb-3">Tu es un pro ?</h2>
-            <p className="text-text-muted text-base max-w-sm mx-auto">
-              Rejoins Soirée Villa — organisateurs, lieux et prestataires bienvenus.
-            </p>
+          <ScrollReveal className="mb-10">
+            <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-3">Partenaires</p>
+            <h2
+              className="font-display font-light text-text"
+              style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
+            >
+              Vous travaillez dans l&apos;événementiel ?
+            </h2>
           </ScrollReveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-px md:bg-border">
             {PRO_CARDS.map((card, i) => (
               <ScrollReveal key={card.role} delay={i * 0.08}>
                 <Link
                   href={card.href}
-                  className={`flex flex-col p-6 rounded-2xl border transition-all duration-200 group hover:shadow-md h-full ${
-                    card.isRegistered ? 'border-success/30 bg-success/5 hover:border-success/50' : 'border-border bg-bg hover:border-primary/30'
-                  }`}
+                  className="flex flex-col p-6 md:p-8 bg-bg border border-border md:border-0 hover:bg-surface transition-colors duration-300 group h-full"
                 >
-                  <span className="text-3xl mb-4 block">{card.icon}</span>
-                  <p className="font-display font-semibold text-lg text-text mb-2">{card.role}</p>
-                  <p className="text-text-muted text-sm mb-5 leading-relaxed flex-1">{card.desc}</p>
-                  <p className={`text-sm font-semibold transition-colors ${card.isRegistered ? 'text-success' : 'text-primary group-hover:text-primary/80'}`}>
-                    {card.label}
+                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text-muted mb-5">{card.role}</p>
+                  <p className="text-text-muted text-sm leading-relaxed flex-1 mb-6">{card.desc}</p>
+                  <p className="text-[11px] tracking-[0.08em] uppercase text-text group-hover:text-primary transition-colors duration-200">
+                    {card.label} →
                   </p>
                 </Link>
               </ScrollReveal>
@@ -439,79 +451,92 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── POUR QUI ──────────────────────────────────────────────────────── */}
-      <section className="px-4 py-14 md:px-12 bg-primary/5 border-b border-border">
-        <ScrollReveal>
-          <p className="font-display font-semibold text-xl md:text-3xl text-text text-center max-w-2xl mx-auto leading-snug">
-            Pour celles et ceux qui veulent{' '}
-            <span className="text-primary">vraiment rencontrer du monde</span>
-            {' '}— sans subir la soirée.
-          </p>
-        </ScrollReveal>
+      {/* ── POUR QUI ──────────────────────────────────────────────────── */}
+      <section className="px-6 py-16 md:px-16 md:py-24 border-b border-border">
+        <div className="max-w-3xl">
+          <ScrollReveal>
+            <blockquote
+              className="font-display font-light text-text leading-[1.2]"
+              style={{ fontSize: 'clamp(1.35rem, 3.5vw, 2.25rem)', letterSpacing: '-0.025em' }}
+            >
+              Pour celles et ceux qui veulent{' '}
+              <span className="text-primary">vraiment rencontrer du monde</span>
+              {' '}— sans subir la soirée.
+            </blockquote>
+          </ScrollReveal>
+        </div>
       </section>
 
-      {/* ── CTA FINAL + WAITLIST ───────────────────────────────────────────── */}
-      <section className="px-4 py-20 md:px-12 md:py-28 max-w-2xl mx-auto text-center">
-        <ScrollReveal>
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-3">Lancement à {city}</p>
-          <h2 className="font-display font-bold text-3xl md:text-4xl text-text mb-4">
-            Prêt·e à te découvrir ?
-          </h2>
-          <p className="text-text-muted mb-10 text-base max-w-sm mx-auto">
-            Fais le quiz, reçois ton profil social, rejoins une soirée à {city}.
-          </p>
+      {/* ── CTA FINAL + WAITLIST ──────────────────────────────────────── */}
+      <section className="px-6 py-20 md:px-16 md:py-28">
+        <div className="max-w-xl">
+          <ScrollReveal>
+            <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-4">
+              Lancement à {city}
+            </p>
+            <h2
+              className="font-display font-light text-text mb-8"
+              style={{ fontSize: 'clamp(1.75rem, 4.5vw, 3.5rem)', letterSpacing: '-0.035em', lineHeight: 1.1 }}
+            >
+              Prêt·e à te découvrir ?
+            </h2>
+            <p className="text-text-muted text-sm leading-relaxed mb-10 max-w-sm">
+              Fais le quiz, reçois ton profil social, rejoins une soirée à {city}.
+            </p>
+            <Link
+              href="/onboarding"
+              className="inline-flex items-center gap-3 border border-text/20 text-text text-[11px] font-medium tracking-[0.12em] uppercase px-8 py-3.5 hover:bg-text/[0.04] transition-colors duration-300 mb-14"
+            >
+              Découvrir mon profil
+              <span aria-hidden className="tracking-normal text-primary">→</span>
+            </Link>
 
-          <Link
-            href="/onboarding"
-            className="inline-flex items-center gap-2 bg-primary text-white font-display font-semibold text-base px-8 py-4 rounded-full shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 mb-12"
-          >
-            Découvre ton style →
-          </Link>
-
-          <div className="relative mb-8">
-            <div className="absolute inset-0 flex items-center" aria-hidden>
-              <div className="w-full border-t border-border" />
+            <div className="border-t border-border pt-8">
+              <p className="text-text-muted text-xs mb-5">
+                Pas de quiz maintenant ? Laisse ton email — on te prévient dès qu&apos;une soirée est disponible.
+              </p>
+              <WaitlistForm />
             </div>
-            <div className="relative flex justify-center">
-              <span className="bg-bg px-4 text-sm text-text-muted">ou</span>
-            </div>
-          </div>
-
-          <p className="text-sm text-text-muted mb-4">
-            Pas de quiz maintenant ? Laisse ton email — on te prévient dès qu'une soirée est disponible.
-          </p>
-          <WaitlistForm />
-        </ScrollReveal>
+          </ScrollReveal>
+        </div>
       </section>
 
-      {/* ── FOOTER ────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-border bg-surface">
-        <div className="max-w-5xl mx-auto px-6 py-12 md:py-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+      {/* ── FOOTER ────────────────────────────────────────────────────── */}
+      <footer className="border-t border-border">
+        <div className="max-w-5xl mx-auto px-6 py-14 md:py-20 md:px-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             {/* Brand */}
-            <div className="md:col-span-1">
-              <Link href="/" className="font-display font-bold text-lg text-text block mb-2">
+            <div className="col-span-2 md:col-span-1">
+              <Link
+                href="/"
+                className="font-display font-medium text-text block mb-3"
+                style={{ letterSpacing: '-0.02em' }}
+              >
                 Soirée Villa
               </Link>
-              <p className="text-text-muted text-xs leading-relaxed">
+              <p className="text-[10px] tracking-[0.2em] uppercase text-text-muted mb-1">
                 Comprendre · Vivre · Oser
               </p>
-              <p className="text-text-muted text-xs mt-2">Nice — 2026</p>
+              <p className="text-[10px] tracking-[0.1em] uppercase text-text-muted/60">
+                Nice — 2026
+              </p>
             </div>
 
             {/* Explorer */}
             <div>
-              <p className="text-xs font-bold text-text uppercase tracking-widest mb-4">Explorer</p>
-              <ul className="flex flex-col gap-2.5">
+              <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text mb-5">Explorer</p>
+              <ul className="flex flex-col gap-3">
                 {[
                   { href: '/experiences', label: 'Soirées' },
                   { href: '/lieux', label: 'Lieux' },
-                  { href: '/fournisseurs', label: 'Fournisseurs' },
-                  { href: '/tier-list', label: 'Tier List' },
+                  { href: '/fournisseurs', label: 'Prestataires' },
+                  { href: '/tier-list', label: 'Classement' },
                   { href: '/marketplace', label: 'Marketplace' },
                 ].map(l => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-text-muted text-sm hover:text-text transition-colors">{l.label}</Link>
+                    <Link href={l.href} className="text-text-muted text-xs hover:text-text transition-colors duration-200">
+                      {l.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -519,16 +544,18 @@ export default async function HomePage() {
 
             {/* Pro */}
             <div>
-              <p className="text-xs font-bold text-text uppercase tracking-widest mb-4">Pro</p>
-              <ul className="flex flex-col gap-2.5">
+              <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text mb-5">Pro</p>
+              <ul className="flex flex-col gap-3">
                 {[
-                  { href: '/organisateur/inscription', label: 'Devenir organisateur' },
-                  { href: '/lieu/inscription', label: 'Inscrire mon lieu' },
-                  { href: '/fournisseur/inscription', label: 'Inscrire ma prestation' },
-                  { href: '/marketplace', label: 'Accéder à la marketplace' },
+                  { href: '/organisateur/inscription', label: 'Organisateur' },
+                  { href: '/lieu/inscription', label: 'Lieu partenaire' },
+                  { href: '/fournisseur/inscription', label: 'Prestataire' },
+                  { href: '/marketplace', label: 'Marketplace' },
                 ].map(l => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-text-muted text-sm hover:text-text transition-colors">{l.label}</Link>
+                    <Link href={l.href} className="text-text-muted text-xs hover:text-text transition-colors duration-200">
+                      {l.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -536,8 +563,8 @@ export default async function HomePage() {
 
             {/* Légal */}
             <div>
-              <p className="text-xs font-bold text-text uppercase tracking-widest mb-4">Légal</p>
-              <ul className="flex flex-col gap-2.5">
+              <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text mb-5">Légal</p>
+              <ul className="flex flex-col gap-3">
                 {[
                   { href: '/charte-participant', label: 'Charte participant' },
                   { href: '/charte-organisateur', label: 'Charte organisateur' },
@@ -545,20 +572,24 @@ export default async function HomePage() {
                   { href: '/contact', label: 'Contact' },
                 ].map(l => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-text-muted text-sm hover:text-text transition-colors">{l.label}</Link>
+                    <Link href={l.href} className="text-text-muted text-xs hover:text-text transition-colors duration-200">
+                      {l.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-8 border-t border-border">
-            <p className="text-text-muted text-xs">© 2026 Soirée Villa — Tous droits réservés</p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-8 border-t border-border">
+            <p className="text-text-muted text-[10px] tracking-[0.1em]">
+              © 2026 Soirée Villa — Tous droits réservés
+            </p>
             <a
               href="https://instagram.com/soireevilla"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-text-muted text-xs hover:text-text transition-colors"
+              className="text-text-muted text-[10px] tracking-[0.1em] hover:text-text transition-colors duration-200"
             >
               Instagram →
             </a>

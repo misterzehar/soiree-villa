@@ -3,73 +3,57 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 
-const EASE_PREMIUM = [0.16, 1, 0.3, 1] as const
+const ease = [0.25, 0.46, 0.45, 0.94] as const
 
 export function HeroAnimated() {
   return (
-    <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-6 pb-24 text-center md:px-12">
-
+    <div className="relative z-10 flex flex-col justify-end flex-1 px-6 pb-20 md:px-16 lg:px-24 md:pb-32">
       <motion.p
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: EASE_PREMIUM, delay: 0.1 }}
-        className="text-xs font-semibold tracking-[0.2em] uppercase text-white/50 mb-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease, delay: 0.2 }}
+        className="text-[10px] font-medium tracking-[0.28em] uppercase text-white/30 mb-7"
       >
-        Comprendre · Vivre · Oser
+        Nice · Expériences sociales animées
       </motion.p>
 
       <motion.h1
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: EASE_PREMIUM, delay: 0.25 }}
-        className="font-display font-bold text-white max-w-3xl leading-[1.05] mb-6 text-balance"
-        style={{ fontSize: 'clamp(2.5rem, 7vw, 5.5rem)' }}
+        transition={{ duration: 0.65, ease, delay: 0.32 }}
+        className="font-display font-light text-white mb-10"
+        style={{
+          fontSize: 'clamp(2.8rem, 7.5vw, 6.75rem)',
+          letterSpacing: '-0.04em',
+          lineHeight: 1.03,
+          maxWidth: '13ch',
+        }}
       >
-        La soirée{' '}
-        <em className="not-italic" style={{ color: 'rgb(var(--color-accent-rgb))' }}>
-          qui te ressemble
-        </em>{' '}
-        existe.
+        La soirée qui{' '}
+        <span className="text-gold">te ressemble</span>
+        {' '}existe.
       </motion.h1>
 
-      <motion.p
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: EASE_PREMIUM, delay: 0.45 }}
-        className="text-lg md:text-xl text-white/60 max-w-md mb-10 leading-relaxed"
-      >
-        On te matche avec des expériences animées, pensées pour ton style social.
-      </motion.p>
-
       <motion.div
-        initial={{ opacity: 0, y: 12, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.55, ease: EASE_PREMIUM, delay: 0.6 }}
-        className="flex flex-col sm:flex-row items-center gap-3"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease, delay: 0.55 }}
+        className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8"
       >
         <Link
           href="/onboarding"
-          className="inline-flex items-center gap-2 bg-white text-text font-display font-semibold text-base px-8 py-4 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
+          className="inline-flex items-center gap-3 border border-white/20 text-white text-[11px] font-medium tracking-[0.12em] uppercase px-8 py-3.5 hover:bg-white/[0.07] transition-colors duration-300"
         >
-          Découvre ton style
-          <span aria-hidden className="text-primary">→</span>
+          Découvrir mon profil
+          <span aria-hidden className="text-gold tracking-normal normal-case">→</span>
         </Link>
         <Link
           href="/experiences"
-          className="inline-flex items-center gap-2 text-white/70 hover:text-white font-medium text-sm px-6 py-4 transition-colors duration-200"
+          className="text-white/40 hover:text-white/70 text-[11px] tracking-[0.1em] uppercase transition-colors duration-300"
         >
           Voir les soirées
         </Link>
       </motion.div>
-
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.9 }}
-        className="mt-5 text-xs text-white/30"
-      >
-        15 questions · moins d'une minute · gratuit
-      </motion.p>
     </div>
   )
 }

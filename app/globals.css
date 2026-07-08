@@ -25,6 +25,8 @@
     --color-terracotta-rgb: 188 107 74;   /* #BC6B4A */
     --color-acid-rgb:       158 220 58;   /* #9EDC3A — acid green */
 
+    --color-canvas-rgb:     12 11 18;     /* #0c0b12 — fond cinématique sombre */
+
     /* ─── Ombres ─────────────────────────────────────────────────── */
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
     --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
