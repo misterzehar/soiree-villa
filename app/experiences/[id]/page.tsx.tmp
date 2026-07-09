@@ -5,7 +5,6 @@ import { createServerSupabase } from '@/lib/supabase'
 import { getCurrentTierInfo, formatPrice, formatDuration } from '@/lib/pricing'
 import { getGradientForExperience } from '@/lib/profile-colors'
 import { PROFILES } from '@/constants/profiles'
-import { FALLBACK_EXPERIENCE } from '@/lib/fallback-image'
 import type { Experience, MenuSocialAct } from '@/types/experience'
 import { StickyCtaBar } from './sticky-cta'
 
@@ -52,13 +51,14 @@ export default async function ExperienceDetailPage({
     <main className="min-h-screen bg-bg">
       {/* Hero */}
       <div className="relative w-full aspect-video max-h-72 overflow-hidden">
-        <img
-          src={experience.cover_image_url ?? FALLBACK_EXPERIENCE}
-          alt={experience.title}
-          className="w-full h-full object-cover"
-        />
-        {!experience.cover_image_url && (
-          <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-30 mix-blend-multiply`} />
+        {experience.cover_image_url ? (
+          <img
+            src={experience.cover_image_url}
+            alt={experience.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className={`w-full h-full bg-gradient-to-br ${gradient}`} />
         )}
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />

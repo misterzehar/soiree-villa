@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, Users, ExternalLink, Star } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Star } from 'lucide-react'
 import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
-import { getLieuFallback } from '@/lib/fallback-image'
-import type { Lieu } from '@/types/lieu'
+import { FOURNISSEUR_CATEGORY_LABELS } from '@/types/fournisseur'
+import type { Fournisseur } from '@/types/fournisseur'
 import type { Review } from '@/types/review'
 import { submitReview, submitContactRequest } from './actions'
 
@@ -13,12 +13,7 @@ const AXIS_LABELS: Record<string, { low: string; high: string; icon: string }> =
   energy:    { low: 'Calme',       high: 'Dynamique',   icon: '⚡' },
   structure: { low: 'Libre',       high: 'Structuré',   icon: '🗂' },
   depth:     { low: 'Légèreté',    high: 'Profondeur',  icon: '💎' },
-  sociality: { low: 'Intimiste',   high: 'Grand groupe',icon: '👥' },
-}
-
-const LIEU_TYPE_LABELS: Record<string, string> = {
-  salle: 'Salle', rooftop: 'Rooftop', plein_air: 'Plein air',
-  bar: 'Bar', restaurant: 'Restaurant', atelier: 'Atelier', autre: 'Autre',
+  sociality: { low: 'Petit groupe',high: 'Grand groupe',icon: '👥' },
 }
 
 function StarDisplay({ rating }: { rating: number }) {
@@ -35,7 +30,7 @@ function formatDate(s: string) {
   return new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-export default async function LieuFichePage({
+export default async function FournisseurFichePage({
   params,
   searchParams,
 }: {
@@ -48,21 +43,21 @@ export default async function LieuFichePage({
   const showReviewBanner  = review === 'sent'
   const supabase = createServerSupabase()
 
-  const [{ data: lieuData }, authClient] = await Promise.all([
-    supabase.from('lieux').select('*').eq('slug', slug).eq('is_approved', true).single(),
+  const [{ data: fData }, authClient] = await Promise.all([
+    supabase.from('fournisseurs').select('*').eq('slug', slug).eq('is_approved', true).single(),
     createSupabaseServerClient(),
   ])
 
-  if (!lieuData) notFound()
-  const lieu = lieuData as Lieu
+  if (!fData) notFound()
+  const f = fData as Fournisseur
 
   const { data: { user } } = await authClient.auth.getUser()
 
   const { data: reviewsData } = await supabase
     .from('reviews')
     .select('*')
-    .eq('target_type', 'lieu')
-    .eq('target_id', lieu.id)
+    .eq('target_type', 'fournisseur')
+    .eq('target_id', f.id)
     .eq('is_published', true)
     .order('created_at', { ascending: false })
 
@@ -76,11 +71,11 @@ export default async function LieuFichePage({
       <div className="max-w-md mx-auto px-4 pt-6 pb-20">
 
         <Link
-          href="/lieux"
+          href="/fournisseurs"
           className="inline-flex items-center gap-1.5 text-text-muted hover:text-text text-sm mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Tous les lieux
+          Tous les prestataires
         </Link>
 
         {showContactBanner && (
@@ -94,31 +89,19 @@ export default async function LieuFichePage({
           </div>
         )}
 
-        <img
-          src={lieu.photo_url ?? getLieuFallback(lieu.lieu_type)}
-          alt={lieu.name}
-          className="w-full h-48 object-cover rounded-2xl mb-5"
-        />
+        {f.photo_url && (
+          <img
+            src={f.photo_url}
+            alt={f.name}
+            className="w-full h-40 object-cover rounded-2xl mb-5"
+          />
+        )}
 
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <h1 className="font-display font-bold text-2xl text-text">{lieu.name}</h1>
-          <span className="text-xs bg-bg border border-border rounded-full px-2.5 py-1 text-text-muted shrink-0">
-            {LIEU_TYPE_LABELS[lieu.lieu_type] ?? lieu.lieu_type}
-          </span>
-        </div>
-
-        <div className="flex flex-wrap gap-3 text-text-muted text-sm mb-2">
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5" />
-            {lieu.city}{lieu.address ? ` · ${lieu.address}` : ''}
-          </span>
-          {lieu.capacity && (
-            <span className="flex items-center gap-1">
-              <Users className="w-3.5 h-3.5" />
-              {lieu.capacity} personnes max
-            </span>
-          )}
-        </div>
+        <p className="text-primary text-xs font-semibold uppercase tracking-wide mb-1">
+          {FOURNISSEUR_CATEGORY_LABELS[f.category]}
+        </p>
+        <h1 className="font-display font-bold text-2xl text-text mb-1">{f.name}</h1>
+        <p className="text-text-muted text-sm mb-2">{f.city}</p>
 
         {avgRating !== null && (
           <div className="flex items-center gap-2 mb-4">
@@ -128,16 +111,23 @@ export default async function LieuFichePage({
           </div>
         )}
 
-        {lieu.ambiance && (
-          <p className="text-text-muted text-sm italic mb-5">{lieu.ambiance}</p>
+        {f.description && (
+          <p className="text-text text-sm leading-relaxed mb-5">{f.description}</p>
+        )}
+
+        {f.price_range && (
+          <div className="bg-surface rounded-2xl px-5 py-4 mb-5">
+            <p className="text-text-muted text-xs mb-1">Fourchette de prix</p>
+            <p className="text-text font-semibold">💰 {f.price_range}</p>
+          </div>
         )}
 
         {/* Profil axes */}
         <div className="bg-surface rounded-2xl p-5 shadow-sm mb-5">
-          <h2 className="font-display font-semibold text-base text-text mb-4">Profil du lieu</h2>
+          <h2 className="font-display font-semibold text-base text-text mb-4">Profil prestataire</h2>
           <div className="flex flex-col gap-3">
             {Object.entries(AXIS_LABELS).map(([axis, labels]) => {
-              const score = lieu.axes_scores[axis] ?? 0
+              const score = f.axes_scores[axis] ?? 0
               const isHigh = score > 0
               return (
                 <div key={axis} className="flex items-center gap-3">
@@ -149,7 +139,7 @@ export default async function LieuFichePage({
                     </div>
                     <div className="h-2 bg-border rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-primary rounded-full transition-all"
+                        className="h-full bg-primary rounded-full"
                         style={{ width: `${isHigh ? 75 : 25}%`, marginLeft: isHigh ? '25%' : undefined }}
                       />
                     </div>
@@ -160,24 +150,24 @@ export default async function LieuFichePage({
           </div>
         </div>
 
-        {lieu.website_url && (
+        {f.website_url && (
           <a
-            href={lieu.website_url}
+            href={f.website_url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors mb-6"
           >
             <ExternalLink className="w-4 h-4" />
-            Visiter le site
+            Contacter / Voir le portfolio
           </a>
         )}
 
         {/* Formulaire de contact */}
         <div className="bg-surface rounded-2xl p-5 shadow-sm mb-5">
           <h2 className="font-display font-semibold text-base text-text mb-1">Demande de contact</h2>
-          <p className="text-text-muted text-xs mb-4">Intéressé par ce lieu ? Envoyez un message directement.</p>
+          <p className="text-text-muted text-xs mb-4">Intéressé par ce prestataire ? Envoyez un message directement.</p>
           <form action={submitContactRequest} className="flex flex-col gap-3">
-            <input type="hidden" name="lieuId" value={lieu.id} />
+            <input type="hidden" name="fournisseurId" value={f.id} />
             <input type="hidden" name="slug" value={slug} />
             <input
               type="text"
@@ -199,7 +189,7 @@ export default async function LieuFichePage({
               name="message"
               required
               rows={4}
-              placeholder="Décrivez votre projet (date, nombre de personnes, type d'événement…)"
+              placeholder="Décrivez votre projet (date, type d'événement, budget indicatif…)"
               className="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-primary resize-none"
             />
             <button
@@ -218,7 +208,7 @@ export default async function LieuFichePage({
           </h2>
 
           {reviews.length === 0 ? (
-            <p className="text-text-muted text-sm mb-4">Pas encore d&apos;avis pour ce lieu.</p>
+            <p className="text-text-muted text-sm mb-4">Pas encore d&apos;avis pour ce prestataire.</p>
           ) : (
             <div className="flex flex-col gap-3 mb-4">
               {reviews.map(r => (
@@ -240,7 +230,7 @@ export default async function LieuFichePage({
                 + Laisser un avis
               </summary>
               <form action={submitReview} className="px-5 pb-5 flex flex-col gap-3">
-                <input type="hidden" name="lieuId" value={lieu.id} />
+                <input type="hidden" name="fournisseurId" value={f.id} />
                 <input type="hidden" name="slug" value={slug} />
                 <div>
                   <label className="block text-xs text-text-muted mb-1">Note (1-5)</label>
@@ -267,7 +257,7 @@ export default async function LieuFichePage({
                   type="submit"
                   className="w-full bg-primary text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-primary/90 transition-colors"
                 >
-                  Soumettre l'avis
+                  Soumettre l&apos;avis
                 </button>
                 <p className="text-text-muted text-xs text-center">L&apos;avis sera publié après modération.</p>
               </form>

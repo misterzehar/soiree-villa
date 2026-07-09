@@ -9,7 +9,6 @@ import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase
 import { getActorProfiles } from '@/lib/actors'
 import { getCity } from '@/lib/city'
 import { fetchTierData } from '@/lib/tier'
-import { FALLBACK_EXPERIENCE, OBSESSION_DEFAULT } from '@/lib/fallback-image'
 import type { ActorProfiles } from '@/lib/actors'
 import type { PricingTier, Experience } from '@/types/experience'
 
@@ -171,14 +170,18 @@ export default async function HomePage() {
               <Link href={`/experiences/${obsession.id}`} className="block group">
                 <div className="relative overflow-hidden">
                   <div className="relative w-full aspect-video overflow-hidden">
-                    <Image
-                      src={obsession.cover_image_url ?? OBSESSION_DEFAULT}
-                      alt=""
-                      fill
-                      priority
-                      sizes="(max-width: 768px) calc(100vw - 32px), 900px"
-                      className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                    />
+                    {obsession.cover_image_url ? (
+                      <Image
+                        src={obsession.cover_image_url}
+                        alt=""
+                        fill
+                        priority
+                        sizes="(max-width: 768px) calc(100vw - 32px), 900px"
+                        className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-canvas" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-canvas/90 via-canvas/30 to-transparent" />
                   </div>
 
@@ -309,15 +312,19 @@ export default async function HomePage() {
                   return (
                     <ScrollReveal key={exp.id} delay={i * 0.08}>
                       <Link href={`/experiences/${exp.id}`} className="block group">
-                        <div className="relative aspect-video w-full overflow-hidden mb-4">
-                          <Image
-                            src={exp.cover_image_url ?? FALLBACK_EXPERIENCE}
-                            alt=""
-                            fill
-                            sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 40px), 300px"
-                            className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
-                          />
-                        </div>
+                        {exp.cover_image_url ? (
+                          <div className="relative aspect-video w-full overflow-hidden mb-4">
+                            <Image
+                              src={exp.cover_image_url}
+                              alt=""
+                              fill
+                              sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 40px), 300px"
+                              className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                            />
+                          </div>
+                        ) : (
+                          <div className="aspect-video w-full mb-4 bg-border/30" />
+                        )}
                         <p
                           className="font-display font-medium text-text text-sm group-hover:text-primary transition-colors duration-200 mb-1 line-clamp-2"
                           style={{ letterSpacing: '-0.01em' }}

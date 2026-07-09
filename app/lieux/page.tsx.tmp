@@ -3,7 +3,6 @@ import { cookies } from 'next/headers'
 import { createServerSupabase } from '@/lib/supabase'
 import { getCity } from '@/lib/city'
 import { CityWaitlistForm } from '@/components/city-waitlist-form'
-import { getLieuFallback } from '@/lib/fallback-image'
 import type { Lieu } from '@/types/lieu'
 
 export const dynamic = 'force-dynamic'
@@ -61,11 +60,11 @@ export default async function LieuxPage() {
                 href={`/lieux/${lieu.slug}`}
                 className="bg-surface rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4"
               >
-                <img
-                  src={lieu.photo_url ?? getLieuFallback(lieu.lieu_type)}
-                  alt={lieu.name}
-                  className="w-16 h-16 rounded-xl object-cover shrink-0"
-                />
+                {lieu.photo_url ? (
+                  <img src={lieu.photo_url} alt={lieu.name} className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-bg flex items-center justify-center text-2xl shrink-0">🏠</div>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="font-display font-semibold text-text">{lieu.name}</p>
                   <p className="text-text-muted text-xs mt-0.5">

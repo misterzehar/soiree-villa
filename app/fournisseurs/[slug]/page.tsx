@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowLeft, ExternalLink, Star } from 'lucide-react'
 import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
 import { FOURNISSEUR_CATEGORY_LABELS } from '@/types/fournisseur'
+import { getFournisseurFallback } from '@/lib/fallback-image'
 import type { Fournisseur } from '@/types/fournisseur'
 import type { Review } from '@/types/review'
 import { submitReview, submitContactRequest } from './actions'
@@ -89,13 +90,11 @@ export default async function FournisseurFichePage({
           </div>
         )}
 
-        {f.photo_url && (
-          <img
-            src={f.photo_url}
-            alt={f.name}
-            className="w-full h-40 object-cover rounded-2xl mb-5"
-          />
-        )}
+        <img
+          src={f.photo_url ?? getFournisseurFallback(f.category)}
+          alt={f.name}
+          className="w-full h-40 object-cover rounded-2xl mb-5"
+        />
 
         <p className="text-primary text-xs font-semibold uppercase tracking-wide mb-1">
           {FOURNISSEUR_CATEGORY_LABELS[f.category]}

@@ -1,0 +1,7 @@
+{
+  "files": ["app/**/*.tsx", "app/**/*.ts", "components/**/*.tsx"],
+  "framework": "nextjs",
+  "insertBefore": "</body>",
+  "commentSyntax": "//",
+  "cspChecked": true
+}

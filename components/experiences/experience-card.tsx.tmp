@@ -7,7 +7,6 @@ import { PROFILES } from '@/constants/profiles'
 import { getCurrentTierInfo, formatPrice } from '@/lib/pricing'
 import { getGradientForExperience } from '@/lib/profile-colors'
 import { getThemeStyle } from '@/lib/theme-style'
-import { FALLBACK_EXPERIENCE } from '@/lib/fallback-image'
 import type { Experience } from '@/types/experience'
 
 function formatDate(dateStr: string): string {
@@ -46,15 +45,16 @@ export function ExperienceCard({
         href={`/experiences/${experience.id}`}
         className={`block bg-surface rounded-2xl shadow-sm overflow-hidden hover:shadow-md hover:scale-[1.01] transition-all duration-200 active:scale-[0.99] ${themeStyle ? themeStyle.accentBorder + ' border' : ''}`}
       >
-        {/* Cover image — with curated fallback when none provided */}
+        {/* Cover image / gradient fallback */}
         <div className="relative w-full aspect-video overflow-hidden">
-          <img
-            src={experience.cover_image_url ?? FALLBACK_EXPERIENCE}
-            alt={experience.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-          {!experience.cover_image_url && themeStyle && (
-            <div className={`absolute inset-0 bg-gradient-to-br ${themeStyle.gradient} opacity-30 mix-blend-multiply`} />
+          {experience.cover_image_url ? (
+            <img
+              src={experience.cover_image_url}
+              alt={experience.title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className={`w-full h-full bg-gradient-to-br ${themeStyle ? themeStyle.gradient : gradient}`} />
           )}
 
           {/* Theme badge — bottom left on image */}

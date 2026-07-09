@@ -56,7 +56,7 @@ export async function SiteHeader({ variant = 'light', center }: Props) {
       <CitySelector initialCity={city} variant={variant} />
 
       {/* Logo */}
-      <Link href="/" className={`font-display font-bold text-lg tracking-tight shrink-0 ${logoClass}`}>
+      <Link href="/" className={`font-display font-medium text-lg tracking-tight shrink-0 ${logoClass}`}>
         Soirée Villa
       </Link>
 

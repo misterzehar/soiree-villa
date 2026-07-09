@@ -59,7 +59,15 @@ export default function RootLayout({
       lang="fr"
       className={`${plusJakartaSans.variable} ${inter.variable}`}
     >
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-canvas focus:text-white focus:text-[10px] focus:tracking-[0.2em] focus:uppercase focus:border focus:border-white/20 focus:outline-none"
+        >
+          Passer au contenu
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

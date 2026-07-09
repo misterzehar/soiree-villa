@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-08T00:00:00.000Z",
+  "title": "Design System: Soirée Villa",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "primary",
+        "displayName": "Nuit Cinématique",
+        "canonical": "oklch(8% 0.02 275)",
+        "tonalRamp": ["#0C0B12", "#181625", "#242237", "#302E4A", "#3C3A5D", "#544F7A", "#736C9B", "#9E99BE", "#D4D1E8"]
+      },
+      "gold": {
+        "role": "primary",
+        "displayName": "Or Niçois",
+        "canonical": "oklch(73% 0.135 85)",
+        "tonalRamp": ["#1F1500", "#3D2900", "#5C3D00", "#7A5200", "#996600", "#B37B00", "#C99A1A", "#D4AF37", "#E8CE7A"]
+      },
+      "primary": {
+        "role": "secondary",
+        "displayName": "Bleu Social",
+        "canonical": "oklch(62% 0.22 264)",
+        "tonalRamp": ["#020B3D", "#041680", "#0A25BB", "#1A3CE0", "#2E54F0", "#4A6CF7", "#6E89FA", "#9EB3FB", "#D0DBFE"]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Violet Créatif",
+        "canonical": "oklch(60% 0.24 298)",
+        "tonalRamp": ["#180033", "#2D0066", "#440099", "#5B00CC", "#7324EE", "#A259FF", "#BA80FF", "#D4ADFF", "#EEDAFF"]
+      },
+      "accent": {
+        "role": "tertiary",
+        "displayName": "Orange Chaleureux",
+        "canonical": "oklch(72% 0.19 35)",
+        "tonalRamp": ["#2D0A00", "#5C1800", "#8C2C00", "#BB4400", "#E05C20", "#FF7A59", "#FF9E85", "#FFBFAD", "#FFE0D6"]
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Page Claire",
+        "canonical": "oklch(98% 0 0)",
+        "tonalRamp": ["#1A1A1A", "#2D2D2D", "#4A4A4A", "#707070", "#A0A0A0", "#C8C8C8", "#E0E0E0", "#F0F0F0", "#FAFAFA"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface Élevée",
+        "canonical": "oklch(100% 0 0)",
+        "tonalRamp": ["#1A1A1A", "#333333", "#4D4D4D", "#808080", "#B3B3B3", "#CCCCCC", "#E6E6E6", "#F5F5F5", "#FFFFFF"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Frontière Invisible",
+        "canonical": "oklch(93% 0.004 265)",
+        "tonalRamp": ["#1A1A20", "#2E2E38", "#444452", "#5A5A6C", "#757586", "#9595A0", "#B8B8C0", "#D6D6DC", "#E8E8EC"]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Encre Profonde",
+        "canonical": "oklch(16% 0.04 270)",
+        "tonalRamp": ["#0A0A14", "#121221", "#1A1A2E", "#28283E", "#37374F", "#464660", "#636375", "#8A8A97", "#C2C2C8"]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Encre Secondaire",
+        "canonical": "oklch(48% 0.016 278)",
+        "tonalRamp": ["#111118", "#1E1E28", "#2C2C38", "#404050", "#565668", "#6B6B7A", "#8C8C9A", "#ADADB8", "#D0D0D8"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display Hero",
+        "purpose": "Titre hero uniquement. Maximal, light (300), tracking négatif intense (-0.04em). Seul endroit où Or Niçois peut colorer un fragment de titre."
+      },
+      "headline": {
+        "displayName": "Headline Section",
+        "purpose": "H2 de section. Toujours font-light (300). Medium (500) interdit sur les H2."
+      },
+      "title": {
+        "displayName": "Title / Sub-heading",
+        "purpose": "H3 dans steppers, cards d'acte. Font-medium (500). Taille fluide clamp."
+      },
+      "body": {
+        "displayName": "Body Copy",
+        "purpose": "Descriptions, copy d'appui. Max 60ch. System-ui pour performance — le body SE RETIRE."
+      },
+      "label": {
+        "displayName": "Kicker Contextuel",
+        "purpose": "Une seule ligne de contexte au-dessus d'un H2. Jamais seul. Information additionnelle absente du titre."
+      }
+    },
+    "shadows": [
+      { "name": "sm", "value": "0 1px 2px rgba(0,0,0,0.04)", "purpose": "Inputs au focus, dropdowns au repos." },
+      { "name": "md", "value": "0 4px 12px rgba(0,0,0,0.08)", "purpose": "Drawers et panneaux latéraux ouverts." },
+      { "name": "lg", "value": "0 8px 24px rgba(0,0,0,0.12)", "purpose": "Modals et dialogs." },
+      { "name": "xl", "value": "0 16px 48px rgba(0,0,0,0.16)", "purpose": "Toasts et notifications." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.25, 0.46, 0.45, 0.94)", "purpose": "Framer Motion default. Entrées hero et scroll reveals (HeroAnimated, ScrollReveal)." },
+      { "name": "ease-premium", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Hover image scale sur cards d'expérience — expo-out, fluide et premium." },
+      { "name": "ease-swipe", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Transitions de swipe (onboarding quiz mobile)." },
+      { "name": "duration-fast", "value": "200ms", "purpose": "Transitions de couleur (hover text, hover CTA text link)." },
+      { "name": "duration-standard", "value": "300ms", "purpose": "Transitions de fond (ghost CTA hover, tile Pro hover)." },
+      { "name": "duration-slow", "value": "500–700ms", "purpose": "Transforms image (card hover scale). Ne pas aller au-delà de 700ms." },
+      { "name": "stagger-step", "value": "80–100ms", "purpose": "Décalage ScrollReveal entre items d'une grille de cards." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Ghost CTA — Dark Surface",
+      "kind": "button",
+      "refersTo": "button-ghost-dark",
+      "description": "CTA principal sur fond canvas (hero, section 3 actes). Toujours avec flèche Or Niçois.",
+      "html": "<a class=\"ds-btn-ghost-dark\" href=\"/onboarding\">Découvrir mon profil <span aria-hidden class=\"ds-btn-arrow\">→</span></a>",
+      "css": ".ds-btn-ghost-dark { display: inline-flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.2); color: #FFFFFF; font-family: 'Plus Jakarta Sans', Inter, sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 32px; text-decoration: none; transition: background-color 300ms ease; cursor: pointer; background: transparent; } .ds-btn-ghost-dark:hover { background-color: rgba(255,255,255,0.07); } .ds-btn-ghost-dark:focus-visible { outline: 2px solid #4A6CF7; outline-offset: 2px; } .ds-btn-arrow { color: #D4AF37; letter-spacing: normal; text-transform: none; }"
+    },
+    {
+      "name": "Ghost CTA — Light Surface",
+      "kind": "button",
+      "refersTo": "button-ghost-light",
+      "description": "CTA principal sur fond bg (section CTA finale, waitlist). Flèche Bleu Social.",
+      "html": "<a class=\"ds-btn-ghost-light\" href=\"/onboarding\">Découvrir mon profil <span aria-hidden class=\"ds-btn-arrow-light\">→</span></a>",
+      "css": ".ds-btn-ghost-light { display: inline-flex; align-items: center; gap: 12px; border: 1px solid rgba(26,26,46,0.2); color: #1A1A2E; font-family: 'Plus Jakarta Sans', Inter, sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 32px; text-decoration: none; transition: background-color 300ms ease; cursor: pointer; background: transparent; } .ds-btn-ghost-light:hover { background-color: rgba(26,26,46,0.04); } .ds-btn-ghost-light:focus-visible { outline: 2px solid #4A6CF7; outline-offset: 2px; } .ds-btn-arrow-light { color: #4A6CF7; letter-spacing: normal; text-transform: none; }"
+    },
+    {
+      "name": "Text Link",
+      "kind": "button",
+      "refersTo": "button-ghost-light",
+      "description": "Navigation secondaire — 'Voir les soirées', 'Classement complet →'. Jamais de soulignement.",
+      "html": "<a class=\"ds-btn-link\">Voir les soirées</a>",
+      "css": ".ds-btn-link { color: rgba(107,107,122,0.4); font-family: 'Plus Jakarta Sans', Inter, sans-serif; font-size: 11px; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; transition: color 300ms ease; cursor: pointer; } .ds-btn-link:hover { color: rgba(107,107,122,0.7); } .ds-btn-link:focus-visible { outline: 2px solid #4A6CF7; outline-offset: 2px; }"
+    },
+    {
+      "name": "Kicker Contextuel",
+      "kind": "custom",
+      "refersTo": "experience-card",
+      "description": "Label 10px uppercase — Le Kicker Contextuel. Toujours au-dessus d'un H2, jamais seul.",
+      "html": "<p class=\"ds-kicker\">Comment ça marche</p>",
+      "css": ".ds-kicker { font-family: 'Plus Jakarta Sans', Inter, sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 0.28em; text-transform: uppercase; color: #6B6B7A; margin: 0 0 12px; } .ds-kicker--on-canvas { color: rgba(255,255,255,0.3); }"
+    },
+    {
+      "name": "Experience Card",
+      "kind": "card",
+      "refersTo": "experience-card",
+      "description": "Card d'expérience — image-led, no border, hover scale sur l'image uniquement.",
+      "html": "<a class=\"ds-experience-card\"><div class=\"ds-experience-card-image\"></div><p class=\"ds-experience-card-title\">Soirée Jazz &amp; Rencontres</p><p class=\"ds-experience-card-meta\">14 mars · Rooftop Promenade</p><p class=\"ds-experience-card-price\">35 €</p></a>",
+      "css": ".ds-experience-card { display: block; text-decoration: none; cursor: pointer; } .ds-experience-card-image { aspect-ratio: 16/9; width: 100%; overflow: hidden; margin-bottom: 16px; background: #E8E8EC; } .ds-experience-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-experience-card:hover .ds-experience-card-image img { transform: scale(1.02); } .ds-experience-card-title { font-family: 'Plus Jakarta Sans', Inter, sans-serif; font-size: 14px; font-weight: 500; color: #1A1A2E; letter-spacing: -0.01em; margin: 0 0 4px; transition: color 200ms ease; } .ds-experience-card:hover .ds-experience-card-title { color: #4A6CF7; } .ds-experience-card-meta { font-family: system-ui, sans-serif; font-size: 12px; color: #6B6B7A; margin: 0; } .ds-experience-card-price { font-family: system-ui, sans-serif; font-size: 12px; color: #6B6B7A; margin: 6px 0 0; }"
+    },
+    {
+      "name": "Pro Partner Tile",
+      "kind": "card",
+      "refersTo": "pro-tile",
+      "description": "Tile de partenaire pro dans la grille 3 colonnes séparées par gap-px sur desktop.",
+      "html": "<a class=\"ds-pro-tile\"><p class=\"ds-pro-tile-role\">Organisateur</p><p class=\"ds-pro-tile-desc\">Crée et anime des soirées structurées. Accède à notre réseau de lieux et fournisseurs.</p><p class=\"ds-pro-tile-cta\">Devenir organisateur →</p></a>",
+      "css": ".ds-pro-tile { display: flex; flex-direction: column; padding: 24px 32px; background: #FAFAFA; border: 1px solid #E8E8EC; text-decoration: none; transition: background-color 300ms ease; height: 100%; cursor: pointer; } .ds-pro-tile:hover { background-color: #FFFFFF; } .ds-pro-tile-role { font-family: 'Plus Jakarta Sans', Inter, sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: #6B6B7A; margin: 0 0 20px; } .ds-pro-tile-desc { font-family: system-ui, sans-serif; font-size: 14px; color: #6B6B7A; line-height: 1.5; flex: 1; margin: 0 0 24px; } .ds-pro-tile-cta { font-family: 'Plus Jakarta Sans', Inter, sans-serif; font-size: 11px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: #1A1A2E; margin: 0; transition: color 200ms ease; } .ds-pro-tile:hover .ds-pro-tile-cta { color: #4A6CF7; } .ds-pro-tile:focus-visible { outline: 2px solid #4A6CF7; outline-offset: 2px; }"
+    },
+    {
+      "name": "3 Actes Card",
+      "kind": "custom",
+      "refersTo": "experience-card",
+      "description": "Carte d'un acte (Comprendre/Vivre/Oser) sur fond canvas. Gold rule est la seule occurrence chromatique de la section.",
+      "html": "<div class=\"ds-act-card\"><p class=\"ds-act-number\">01 · Entrée</p><div class=\"ds-act-rule\"></div><h3 class=\"ds-act-verb\">Comprendre</h3><p class=\"ds-act-desc\">L'hôte installe le cadre. Tu observes, tu te mets en confiance. Personne n'est balancé dans le vide.</p></div>",
+      "css": ".ds-act-card { } .ds-act-number { font-family: 'Plus Jakarta Sans', Inter, sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin: 0 0 16px; } .ds-act-rule { width: 24px; height: 1px; background: #D4AF37; margin-bottom: 20px; } .ds-act-verb { font-family: 'Plus Jakarta Sans', Inter, sans-serif; font-weight: 300; color: #FFFFFF; letter-spacing: -0.025em; font-size: 28px; line-height: 1.2; margin: 0 0 16px; } .ds-act-desc { font-family: system-ui, sans-serif; font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.5; margin: 0; }"
+    },
+    {
+      "name": "Stepper Number (Outline)",
+      "kind": "custom",
+      "refersTo": "experience-card",
+      "description": "Numéro outline du stepper 'Comment ça marche'. WebkitTextStroke — non-standard mais broadly supported.",
+      "html": "<div class=\"ds-stepper\"><span class=\"ds-stepper-number\" aria-hidden>1</span></div>",
+      "css": ".ds-stepper { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; } .ds-stepper-number { font-family: 'Plus Jakarta Sans', Inter, sans-serif; font-weight: 700; font-size: clamp(5rem, 12vw, 10rem); line-height: 0.88; letter-spacing: -0.04em; -webkit-text-stroke: 1.5px #E8E8EC; color: transparent; display: block; user-select: none; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La Loge Privée",
+    "overview": "Soirée Villa est une mise en scène, pas une marketplace. Chaque écran doit donner le sentiment d'entrer dans une salle de spectacle privée — l'interface est le plateau, le visiteur est l'acteur principal. Le système visuel opère en huis-clos choisi : retenu, cinématique, sans publicité d'ambiance. La qualité se dit par ce qu'on retire, pas par ce qu'on ajoute.\n\nLa dualité tonale — fond cinématique sombre (canvas, #0C0B12) pour les scènes de mise en ambiance, fond éditorial clair (bg, #FAFAFA) pour le contenu lisible — n'est pas un dark mode. C'est une grammaire dramaturgique : chaque cut entre surface claire et sombre est une transition de scène. L'Or Niçois (#D4AF37) est le seul signal chromatique fort ; sa rareté est son pouvoir.\n\nCe système repousse explicitement : Eventbrite (transactionnel, listing de masse), Fever/Shotgun (FOMO par design, neon), Meetup (UX forum), Facebook Events (bruit réseau), et la monoculture SaaS cream de 2026.",
+    "keyCharacteristics": [
+      "Scènes cinématiques (bg-canvas) alternent avec sections éditoriales (bg-bg) comme des cuts de montage",
+      "Un seul accent chromatique fort par écran maximum — l'Or Niçois (#D4AF37)",
+      "Typographie font-light (weight 300) comme personnalité principale",
+      "Coins francs (0px) sur tous les CTAs : le luxe ne s'arrondit pas",
+      "Labels 10px / tracking 0.28em comme système nommé (Le Kicker Contextuel)",
+      "Plat par défaut : pas d'ombres au repos, profondeur par contraste tonal et bordures 1px"
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "L'Or Niçois apparaît sur ≤3 éléments distincts par écran. Sa rareté est le point. Dès qu'il apparaît partout, il n'existe plus.", "section": "colors" },
+      { "name": "The Canvas-or-White Rule", "body": "Les fonds de section n'ont que deux valeurs autorisées : canvas (#0C0B12) ou bg (#FAFAFA). Tout autre fond de section est interdit.", "section": "colors" },
+      { "name": "The Featherweight Rule", "body": "Font-weight 300 (light) est le poids par défaut pour tous les H1 et H2. Le medium (500) est réservé aux H3 et labels uniquement.", "section": "typography" },
+      { "name": "The Kicker System Rule", "body": "Le Kicker Contextuel (10px uppercase) est un système de marque nommé. Un seul kicker par section, immédiatement au-dessus du H2, avec information additionnelle absente du titre.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Aucune surface au repos n'a d'ombre. Les ombres n'existent qu'en réponse à une élévation interactive ou un état flottant.", "section": "elevation" },
+      { "name": "The Ghost-Only Rule", "body": "Les boutons solides (fond plein) n'existent pas dans le registre brand. Tout CTA est transparent au repos.", "section": "components" },
+      { "name": "The No-Card-Border Rule", "body": "Les cards d'expérience n'ont aucune bordure. L'espace blanc entre les cards est la seule délimitation.", "section": "components" }
+    ],
+    "dos": [
+      "Do utiliser bg-canvas (#0C0B12) et bg-bg (#FAFAFA) comme seuls fonds de section",
+      "Do maintenir l'Or Niçois (#D4AF37) sur ≤3 éléments par écran",
+      "Do appliquer font-weight 300 (light) à tous les H1 et H2",
+      "Do garder les CTAs en ghost (transparent, bordure 1px, coins 0px)",
+      "Do vérifier le contraste de text-muted (#6B6B7A) sur bg-bg (#FAFAFA) — ratio 4.53:1 WCAG AA",
+      "Do respecter prefers-reduced-motion sur toutes les animations Framer Motion",
+      "Do utiliser text-wrap: balance sur les H1–H3",
+      "Do remplacer tout bg-border/30 placeholder par une image réelle dès qu'elle est disponible"
+    ],
+    "donts": [
+      "Don't utiliser un fond coloré autre que canvas ou bg pour des sections entières",
+      "Don't utiliser des dégradés de couleur (gradient text, fond dégradé décoratif) — esthétique neon/fluo rejetée",
+      "Don't reproduire l'esthétique SaaS cream : fond beige, Fraunces, kicker small-caps générique",
+      "Don't construire dans le registre Eventbrite (listing de masse, grilles denses, filtres en barre)",
+      "Don't simuler Fever/Shotgun (FOMO neon, compteurs manipulatoires) — nous ne vendons pas de l'anxiété",
+      "Don't arrondir les CTAs — rounded-* interdit sur les boutons",
+      "Don't utiliser les tokens de thème de soirée (wine, burgundy, terracotta, acid, electric) comme fonds de section",
+      "Don't laisser un placeholder CSS là où une image d'ambiance devrait se trouver en production",
+      "Don't cumuler Kicker + numéros de section + H2 sur le même bloc (scaffolding AI à 3 niveaux)",
+      "Don't utiliser border-left ou border-right comme accent coloré sur des cards"
+    ]
+  }
+}

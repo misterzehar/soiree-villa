@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"require\\('stripe'\\); require\\('resend'\\); console.log\\('OK'\\)\")",
+      "Bash(node -e \"const Stripe = require\\('stripe'\\); const s = new Stripe\\('sk_test_fake'\\); console.log\\(s.apiVersion || 'ok'\\)\")",
+      "Bash(node -e \"const Stripe = require\\('stripe'\\); const s = new Stripe\\('sk_test_fake', { apiVersion: '2025-05-28.basil' }\\); console.log\\('api ok'\\)\")",
+      "Bash(git commit -m ' *)",
+      "Bash(ls \"c:\\\\Users\\\\jedro\\\\Desktop\\\\\" 2>&1)",
+      "Read(//c/Users/jedro/**)",
+      "Bash(dir \"c:\\\\Users\\\\jedro\\\\Desktop\")",
+      "Bash(node -e \"require\\('@supabase/ssr'\\); console.log\\('ok'\\)\")",
+      "Bash(git commit *)",
+      "Bash(del .git\\\\index.lock)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\jedro\\\\Desktop\\\\soiree-villa\\\\.git\\\\index.lock\" -Force)",
+      "Bash(rm \"c:/Users/jedro/Desktop/soiree-villa/.git/index.lock\" *)",
+      "Bash(rm \"c:/Users/jedro/Desktop/soiree-villa/.git/HEAD.lock\")",
+      "Bash(rm \"c:/Users/jedro/Desktop/soiree-villa/.git/index.lock\")",
+      "Bash(node -e \"require\\('@react-pdf/renderer'\\); console.log\\('ok'\\)\")",
+      "Bash(Get-ChildItem app/onboarding -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(Get-ChildItem lib *)",
+      "Bash(Get-ChildItem supabase *)",
+      "Bash(git clone *)",
+      "Read(//c/Users/jedro/AppData/Local/Temp/hf-source/**)",
+      "Read(//c/Users/jedro/AppData/Local/Temp/hf-source/skills/**)",
+      "Read(//c/Users/jedro/AppData/Local/Temp/hf-source/skills/hyperframes-core/**)",
+      "Bash(rm -rf \"C:/Users/jedro/AppData/Local/Temp/hf-source\" && echo \"cleaned\")",
+      "Bash(echo \"=== PROJET ===\" && ls \"C:/Users/jedro/Desktop/soiree-villa/.claude/skills/\" && echo \"\" && echo \"=== UTILISATEUR ===\" && ls \"C:/Users/jedro/.claude/skills/\")",
+      "Read(//c/Users/jedro/.claude/skills/**)",
+      "Read(//c/Users/jedro/.claude/plugins/**)",
+      "Read(//c/Users/jedro/.claude/**)",
+      "PowerShell(winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements 2>&1)",
+      "PowerShell(winget install OpenJS.NodeJS.LTS --source winget --accept-package-agreements --accept-source-agreements 2>&1)",
+      "Bash(mkdir -p \"C:/Users/jedro/.claude/impeccable-tmp\")",
+      "Bash(npx --yes impeccable install)",
+      "Bash(rm -rf \"C:/Users/jedro/.claude/impeccable-tmp\" && echo \"cleaned\" && echo \"\" && cat \"C:/Users/jedro/.claude/skills/impeccable/SKILL.md\" | head -20)",
+      "Bash(node \"C:/Users/jedro/.claude/skills/impeccable/scripts/context.mjs\")",
+      "Read(//c/Users/jedro/.claude/skills/impeccable/reference/**)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('deps:', list\\(d.get\\('dependencies',{}\\).keys\\(\\)\\)[:15]\\)\")",
+      "Bash(node \"C:/Users/jedro/.claude/skills/impeccable/scripts/detect-csp.mjs\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\jedro\\AppData\\Local\\Temp\\hf-source",
+      "C:\\Users\\jedro\\.claude",
+      "C:\\Users\\jedro\\.claude\\impeccable-tmp",
+      "C:\\Users\\jedro\\.claude\\skills"
+    ]
+  }
+}

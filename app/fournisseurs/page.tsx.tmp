@@ -4,7 +4,6 @@ import { createServerSupabase } from '@/lib/supabase'
 import { getCity } from '@/lib/city'
 import { CityWaitlistForm } from '@/components/city-waitlist-form'
 import { FOURNISSEUR_CATEGORY_LABELS } from '@/types/fournisseur'
-import { getFournisseurFallback } from '@/lib/fallback-image'
 import type { Fournisseur, FournisseurCategory } from '@/types/fournisseur'
 
 export const dynamic = 'force-dynamic'
@@ -68,20 +67,13 @@ export default async function FournisseursPage() {
                     <Link
                       key={f.id}
                       href={`/fournisseurs/${f.slug}`}
-                      className="bg-surface rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4"
+                      className="bg-surface rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
-                      <img
-                        src={f.photo_url ?? getFournisseurFallback(f.category)}
-                        alt={f.name}
-                        className="w-16 h-16 rounded-xl object-cover shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-display font-semibold text-text">{f.name}</p>
-                        <p className="text-text-muted text-xs mt-0.5">{f.city}{f.price_range ? ` · ${f.price_range}` : ''}</p>
-                        {f.description && (
-                          <p className="text-text-muted text-xs mt-1 line-clamp-2">{f.description}</p>
-                        )}
-                      </div>
+                      <p className="font-display font-semibold text-text">{f.name}</p>
+                      <p className="text-text-muted text-xs mt-0.5">{f.city}{f.price_range ? ` · ${f.price_range}` : ''}</p>
+                      {f.description && (
+                        <p className="text-text-muted text-xs mt-1 line-clamp-2">{f.description}</p>
+                      )}
                     </Link>
                   ))}
                 </div>

@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, MapPin, Users, ExternalLink, Star } from 'lucide-react'
 import { createServerSupabase, createSupabaseServerClient } from '@/lib/supabase'
-import { getLieuFallback } from '@/lib/fallback-image'
 import type { Lieu } from '@/types/lieu'
 import type { Review } from '@/types/review'
 import { submitReview, submitContactRequest } from './actions'
@@ -94,11 +93,13 @@ export default async function LieuFichePage({
           </div>
         )}
 
-        <img
-          src={lieu.photo_url ?? getLieuFallback(lieu.lieu_type)}
-          alt={lieu.name}
-          className="w-full h-48 object-cover rounded-2xl mb-5"
-        />
+        {lieu.photo_url && (
+          <img
+            src={lieu.photo_url}
+            alt={lieu.name}
+            className="w-full h-48 object-cover rounded-2xl mb-5"
+          />
+        )}
 
         <div className="flex items-start justify-between gap-3 mb-2">
           <h1 className="font-display font-bold text-2xl text-text">{lieu.name}</h1>
