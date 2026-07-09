@@ -142,15 +142,34 @@ export default async function HomePage() {
 
       {/* ── HERO ──────────────────────────────────────────────────────── */}
       <section className="relative flex flex-col min-h-[100svh] overflow-hidden">
-        <div aria-hidden className="absolute inset-0 bg-canvas" />
+        {/* Background photo — cinematographic base layer */}
+        <Image
+          src="/fallback-experience.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        {/* Dark overlay — ensures text legibility over any photo */}
         <div
           aria-hidden
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse 70% 50% at 68% 78%, rgb(var(--color-gold-rgb) / 0.06), transparent)',
+            background:
+              'linear-gradient(180deg, rgba(12,11,18,0.55) 0%, rgba(12,11,18,0.35) 45%, rgba(12,11,18,0.85) 100%)',
           }}
         />
-        <div aria-hidden className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-bg to-transparent" />
+        {/* Gold subtle glow (kept from original DA) */}
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(ellipse 70% 50% at 68% 78%, rgb(var(--color-gold-rgb) / 0.08), transparent)',
+          }}
+        />
+        {/* Fade to bg at the very bottom for smooth transition to next section */}
+        <div aria-hidden className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-bg to-transparent" />
 
         <nav className="relative z-10 px-6 pt-6 md:px-16 md:pt-8">
           <SiteHeader variant="dark" />

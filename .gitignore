@@ -35,4 +35,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Claude Code (IDE tool directory) — track
+# Claude Code (IDE tool directory) — track skills, ignore settings/secrets
+.claude/settings.json
+.claude/settings.local.json
