@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Lock, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { createCheckoutSession } from './actions'
-import { formatPrice } from '@/lib/pricing'
 import type { Experience, CurrentTierInfo } from '@/types/experience'
 
 function InputField({
@@ -23,8 +22,8 @@ function InputField({
   error?: string
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={name} className="text-text text-sm font-medium">
+    <div className="flex flex-col mb-8">
+      <label htmlFor={name} className="text-white/50 text-[10px] font-medium tracking-[0.3em] uppercase mb-2">
         {label}
       </label>
       <input
@@ -34,14 +33,15 @@ function InputField({
         autoComplete={autoComplete}
         required
         defaultValue={defaultValue}
-      className={[
-          'w-full border rounded-xl px-4 py-3 text-sm text-text bg-surface',
-          'focus:outline-none focus:ring-2 focus:ring-primary/40',
-          'placeholder:text-text-muted transition-colors',
-          error ? 'border-error' : 'border-border focus:border-primary',
+        className={[
+          'w-full bg-transparent border-b px-0 py-3',
+          'text-white text-lg placeholder:text-white/20',
+          'focus:outline-none transition-colors duration-200',
+          'rounded-none appearance-none',
+          error ? 'border-red-400 focus:border-red-400' : 'border-white/20 focus:border-gold',
         ].join(' ')}
       />
-      {error && <p className="text-error text-xs">{error}</p>}
+      {error && <p className="text-red-400 text-xs mt-1.5">{error}</p>}
     </div>
   )
 }
@@ -60,8 +60,6 @@ export function RegisterForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [cgu, setCgu] = useState(false)
   const [charte, setCharte] = useState(false)
-
-  const { tier, placesRestantes, nextTier } = tierInfo
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -95,114 +93,102 @@ export function RegisterForm({
     window.location.href = result.url
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+  // fieldErrors is set server-side; keep the ref to avoid ts unused-var warning
+  void fieldErrors
 
-      {/* Form fields */}
-      <div className="bg-surface rounded-2xl p-5 shadow-sm flex flex-col gap-4">
-        <InputField
-          label="Prénom"
-          name="firstName"
-          autoComplete="given-name"
-          defaultValue={prefill.firstName}
-          error={fieldErrors.firstName}
-        />
-        <InputField
-          label="Nom"
-          name="lastName"
-          autoComplete="family-name"
-          defaultValue={prefill.lastName}
-          error={fieldErrors.lastName}
-        />
-        <InputField
-          label="Email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          defaultValue={prefill.email}
-          error={fieldErrors.email}
-        />
-      </div>
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col">
+
+      <InputField
+        label="Prénom"
+        name="firstName"
+        autoComplete="given-name"
+        defaultValue={prefill.firstName}
+      />
+      <InputField
+        label="Nom"
+        name="lastName"
+        autoComplete="family-name"
+        defaultValue={prefill.lastName}
+      />
+      <InputField
+        label="Email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        defaultValue={prefill.email}
+      />
 
       {/* Checkboxes */}
-      <div className="flex flex-col gap-3">
-        <label className="flex items-start gap-3 cursor-pointer">
+      <div className="flex flex-col gap-5 mb-10">
+
+        <label className="flex items-start gap-4 cursor-pointer">
           <input
             type="checkbox"
             checked={cgu}
             onChange={e => setCgu(e.target.checked)}
-            className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+            className="mt-0.5 w-5 h-5 shrink-0 cursor-pointer accent-gold"
           />
-          <span className="text-text text-sm leading-relaxed">
+          <span className="text-white/70 text-sm leading-relaxed">
             J&apos;accepte les{' '}
-            <Link href="/charte" target="_blank" className="text-primary underline hover:no-underline">
+            <Link href="/charte" target="_blank" className="text-gold underline hover:no-underline">
               conditions générales et la politique d&apos;annulation
             </Link>
           </span>
         </label>
 
-        <label className="flex items-start gap-3 cursor-pointer">
+        <label className="flex items-start gap-4 cursor-pointer">
           <input
             type="checkbox"
             checked={charte}
             onChange={e => setCharte(e.target.checked)}
-            className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+            className="mt-0.5 w-5 h-5 shrink-0 cursor-pointer accent-gold"
           />
           <div>
-            <span className="text-text text-sm leading-relaxed">
+            <span className="text-white/70 text-sm leading-relaxed">
               J&apos;ai lu et j&apos;accepte la{' '}
-              <Link href="/charte" target="_blank" className="text-primary underline hover:no-underline">
+              <Link href="/charte" target="_blank" className="text-gold underline hover:no-underline">
                 charte de Soirée Villa
               </Link>
             </span>
-            <p className="text-text-muted text-xs mt-0.5 italic">
+            <p className="text-white/40 text-xs mt-1 italic">
               &laquo;&nbsp;Tu es là pour vivre l&apos;expérience, pas la subir ni la casser.&nbsp;&raquo;
             </p>
           </div>
         </label>
+
       </div>
 
-      <p className="text-text-muted text-xs leading-relaxed">
-        Tu recevras un email de confirmation après paiement. Annulation possible jusqu&apos;à 48h avant.
-      </p>
-
+      {/* Erreur */}
       {errorMsg && (
-        <p className="text-error text-sm bg-error/5 border border-error/20 rounded-xl px-4 py-3">
-          {errorMsg}
-        </p>
+        <div className="border border-red-400/30 bg-red-400/5 px-5 py-4 mb-8">
+          <p className="text-red-400 text-sm">{errorMsg}</p>
+        </div>
       )}
 
-      {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-surface/95 backdrop-blur-sm border-t border-border px-4 py-4">
-        <div className="max-w-md mx-auto">
-          <button
-            type="submit"
-            disabled={status === 'loading'}
-            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:opacity-60 text-white font-display font-semibold py-4 rounded-2xl shadow-md transition-colors duration-150"
-          >
-            {status === 'loading' ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Redirection vers le paiement…
-              </>
-            ) : (
-              <>
-                <Lock className="w-4 h-4" />
-                Payer {formatPrice(tier.price_cents)}
-              </>
-            )}
-          </button>
-          {nextTier && (
-            <p className="text-center text-text-muted text-xs mt-2">
-              {tier.label} · {placesRestantes} place{placesRestantes > 1 ? 's' : ''} restante{placesRestantes > 1 ? 's' : ''}
-            </p>
-          )}
-          {/* Payment logos */}
-          <p className="text-center text-text-muted text-xs mt-1.5">
-            Visa · Mastercard · CB — Paiement sécurisé Stripe
-          </p>
-        </div>
-      </div>
+      {/* CTA Ghost Doré — inline, pas sticky */}
+      <button
+        type="submit"
+        disabled={status === 'loading'}
+        className="w-full md:w-auto md:min-w-[280px] inline-flex items-center justify-center gap-3 border border-gold/60 bg-transparent text-gold font-medium tracking-[0.15em] uppercase text-sm px-10 py-5 hover:bg-gold/10 hover:border-gold focus-visible:border-gold focus-visible:bg-gold/15 focus-visible:outline-none transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-none"
+      >
+        {status === 'loading' ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+            Redirection...
+          </>
+        ) : (
+          <>
+            Continuer vers le paiement
+            <span aria-hidden="true" className="tracking-normal normal-case">→</span>
+          </>
+        )}
+      </button>
+
+      <p className="text-white/30 text-xs mt-5">
+        Visa · Mastercard · CB — Paiement sécurisé Stripe
+      </p>
+
     </form>
   )
 }
