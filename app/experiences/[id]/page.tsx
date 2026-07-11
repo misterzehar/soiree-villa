@@ -249,76 +249,108 @@ export default async function ExperienceDetailPage({
           >
             Le menu social
           </h2>
-          <p className="text-white/50 text-sm text-center mb-24">
+          <p className="text-white/50 text-sm md:text-base tracking-wide max-w-[42ch] mx-auto text-center italic mb-24 md:mb-32">
             Trois actes pour une soirée qui te ressemble
           </p>
 
-          <div className="flex flex-col gap-24">
-            {(['entree', 'plat', 'dessert'] as const).map(key => {
-              const meta = ACT_META[key]
-              const act  = experience.menu_social[key]
-              return (
-                <div key={key} className="text-center flex flex-col items-center">
+          {/* Fil narratif vertical + 3 actes */}
+          <div className="relative">
 
-                  {/* Séparateur doré */}
-                  <div className="h-px w-24 bg-gold/40 mb-10" />
+            {/* Ligne continue reliant les 3 actes */}
+            <div
+              aria-hidden="true"
+              className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-gold/40 via-gold/20 to-gold/40"
+            />
 
-                  {/* Numéro outline dramatique */}
-                  <p
-                    className="font-display font-black text-transparent select-none leading-none"
-                    style={{ fontSize: '8rem', WebkitTextStroke: '1px rgba(212,175,55,0.5)' } as React.CSSProperties}
-                    aria-hidden="true"
-                  >
-                    {meta.number}
-                  </p>
+            <div className="flex flex-col">
+              {(['entree', 'plat', 'dessert'] as const).map((key, idx) => {
+                const meta = ACT_META[key]
+                const act  = experience.menu_social[key]
+                const durLabel = act.duration_minutes >= 60
+                  ? formatDuration(act.duration_minutes)
+                  : `${act.duration_minutes} min`
 
-                  {/* Type : Entrée / Plat / Dessert */}
-                  <p className="text-gold text-[10px] font-medium tracking-[0.5em] uppercase mt-4 mb-2">
-                    {meta.type}
-                  </p>
+                return (
+                  <div key={key}>
 
-                  {/* Verbe */}
-                  <h3
-                    className="font-display font-light text-white"
-                    style={{
-                      fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-                      letterSpacing: '-0.03em',
-                      lineHeight: 1.05,
-                    }}
-                  >
-                    {meta.verb}
-                  </h3>
+                    {/* Ornement de transition entre actes */}
+                    {idx > 0 && (
+                      <div className="flex items-center justify-center gap-4 my-20 md:my-24" aria-hidden="true">
+                        <div className="w-16 h-px bg-gold/30" />
+                        <span className="text-gold/60 text-xs tracking-[0.5em]">✦</span>
+                        <div className="w-16 h-px bg-gold/30" />
+                      </div>
+                    )}
 
-                  {/* Label de l'acte */}
-                  <p
-                    className="font-display font-medium text-white my-6 leading-snug"
-                    style={{ fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)' }}
-                  >
-                    {act.label}
-                  </p>
+                    <div className="text-center flex flex-col items-center py-4">
 
-                  {/* Description de l'acte */}
-                  <p
-                    className="text-white/70 max-w-[52ch]"
-                    style={{ fontSize: 'clamp(1rem, 1.75vw, 1.25rem)', lineHeight: 1.7 }}
-                  >
-                    {act.description}
-                  </p>
+                      {/* Numéro outline — flotte sur le fil via masque bg-canvas */}
+                      <div className="relative z-10 px-6 bg-canvas">
+                        <p
+                          className="font-display font-black text-transparent select-none leading-none"
+                          style={{ fontSize: 'clamp(6rem, 12vw, 10rem)', WebkitTextStroke: '1px rgba(212,175,55,0.5)' } as React.CSSProperties}
+                          aria-hidden="true"
+                        >
+                          {meta.number}
+                        </p>
+                      </div>
 
-                  {/* Durée */}
-                  <p className="text-white/40 text-xs tracking-wide mt-4">
-                    {act.duration_minutes >= 60
-                      ? formatDuration(act.duration_minutes)
-                      : `${act.duration_minutes} min`}
-                  </p>
+                      {/* Kicker : Type · Durée */}
+                      <div className="inline-flex items-center gap-3 mt-4 mb-2">
+                        <span className="text-gold text-[10px] font-medium tracking-[0.5em] uppercase">
+                          {meta.type}
+                        </span>
+                        <span className="text-white/30 text-[10px]" aria-hidden="true">·</span>
+                        <span className="text-white/50 text-[10px] tracking-[0.2em] uppercase">
+                          {durLabel}
+                        </span>
+                      </div>
 
-                  {/* Rôle hôte */}
-                  <p className="text-white/40 italic text-sm mt-2">{meta.hostRole}</p>
+                      {/* Verbe */}
+                      <h3
+                        className="font-display font-light text-white mt-2"
+                        style={{
+                          fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+                          letterSpacing: '-0.03em',
+                          lineHeight: 1.05,
+                        }}
+                      >
+                        {meta.verb}
+                      </h3>
 
-                </div>
-              )
-            })}
+                      {/* Label de l'acte */}
+                      <p
+                        className="font-display font-medium text-white my-6 leading-snug"
+                        style={{ fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)' }}
+                      >
+                        {act.label}
+                      </p>
+
+                      {/* Description de l'acte */}
+                      <p
+                        className="text-white/70 max-w-[52ch]"
+                        style={{ fontSize: 'clamp(1rem, 1.75vw, 1.25rem)', lineHeight: 1.7 }}
+                      >
+                        {act.description}
+                      </p>
+
+                      {/* Rôle de l'hôte — bloc mis en valeur */}
+                      <div className="mt-8 border-t border-white/10 pt-6 max-w-[52ch] mx-auto w-full">
+                        <p className="text-gold text-[10px] font-medium tracking-[0.4em] uppercase mb-2">
+                          L&apos;hôte
+                        </p>
+                        <p className="text-white/70 text-base leading-relaxed italic">
+                          {meta.hostRole}
+                        </p>
+                      </div>
+
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
+
         </div>
       </section>
 
