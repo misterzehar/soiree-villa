@@ -140,9 +140,10 @@ export default async function HomePage() {
   return (
     <main id="main-content" className="bg-bg min-h-screen">
 
-      {/* ── HERO ──────────────────────────────────────────────────────── */}
+      {/* ════════════════════════════════════════
+          HERO — bg-canvas, image plein écran
+      ════════════════════════════════════════ */}
       <section className="relative flex flex-col min-h-[100svh] overflow-hidden">
-        {/* Background photo — cinematographic base layer */}
         <Image
           src="/fallback-experience.jpg"
           alt=""
@@ -151,16 +152,13 @@ export default async function HomePage() {
           sizes="100vw"
           className="object-cover object-center"
         />
-        {/* Dark overlay — ensures text legibility over any photo */}
         <div
           aria-hidden
           className="absolute inset-0"
           style={{
-            background:
-              'linear-gradient(180deg, rgba(12,11,18,0.55) 0%, rgba(12,11,18,0.35) 45%, rgba(12,11,18,0.85) 100%)',
+            background: 'linear-gradient(180deg, rgba(12,11,18,0.55) 0%, rgba(12,11,18,0.35) 45%, rgba(12,11,18,0.85) 100%)',
           }}
         />
-        {/* Gold subtle glow (kept from original DA) */}
         <div
           aria-hidden
           className="absolute inset-0"
@@ -168,8 +166,7 @@ export default async function HomePage() {
             background: 'radial-gradient(ellipse 70% 50% at 68% 78%, rgb(var(--color-gold-rgb) / 0.08), transparent)',
           }}
         />
-        {/* Fade to bg at the very bottom for smooth transition to next section */}
-        <div aria-hidden className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-bg to-transparent" />
+        <div aria-hidden className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-canvas to-transparent" />
 
         <nav className="relative z-10 px-6 pt-6 md:px-16 md:pt-8">
           <SiteHeader variant="dark" />
@@ -178,137 +175,201 @@ export default async function HomePage() {
         <HeroAnimated />
       </section>
 
-      {/* ── OBSESSION DE LA SEMAINE ───────────────────────────────────── */}
+      {/* ════════════════════════════════════════
+          OBSESSION DE LA SEMAINE — bg-canvas
+      ════════════════════════════════════════ */}
       {obsession && (() => {
         const tier = currentPrice(obsession.pricing_tiers)
         const dateFmt = new Date(obsession.date).toLocaleDateString('fr-FR', {
           weekday: 'long', day: 'numeric', month: 'long',
         })
         return (
-          <section className="px-4 py-14 md:px-12 md:py-20 max-w-5xl mx-auto">
-            <ScrollReveal>
-              <Link href={`/experiences/${obsession.id}`} className="block group">
-                <div className="relative overflow-hidden">
-                  <div className="relative w-full aspect-video overflow-hidden">
-                    <Image
-                      src={obsession.cover_image_url ?? OBSESSION_DEFAULT}
-                      alt=""
-                      fill
-                      priority
-                      sizes="(max-width: 768px) calc(100vw - 32px), 900px"
-                      className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-canvas/90 via-canvas/30 to-transparent" />
-                  </div>
+          <section className="bg-canvas px-4 pt-2 pb-14 md:px-12 md:pb-20">
+            <div className="max-w-5xl mx-auto">
+              <ScrollReveal>
+                <Link href={`/experiences/${obsession.id}`} className="block group">
+                  <div className="relative overflow-hidden">
+                    <div className="relative w-full aspect-video overflow-hidden">
+                      <Image
+                        src={obsession.cover_image_url ?? OBSESSION_DEFAULT}
+                        alt=""
+                        fill
+                        priority
+                        sizes="(max-width: 768px) calc(100vw - 32px), 900px"
+                        className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-canvas/90 via-canvas/30 to-transparent" />
+                    </div>
 
-                  <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-10">
-                    <p className="text-[10px] font-medium tracking-[0.25em] uppercase text-white/55">
-                      Obsession de la semaine
-                    </p>
-                    <div>
-                      <p className="text-[11px] font-medium tracking-[0.15em] uppercase text-white/55 mb-3 capitalize">
-                        {dateFmt} · {obsession.venue_name}
-                        {tier && ` · À partir de ${Math.round(tier.price_cents / 100)} €`}
+                    <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-10">
+                      <p className="text-gold text-[10px] font-medium tracking-[0.4em] uppercase">
+                        Obsession de la semaine
                       </p>
-                      <h2
-                        className="font-display font-light text-white mb-6 leading-none text-balance"
-                        style={{ fontSize: 'clamp(1.75rem, 4.5vw, 3.5rem)', letterSpacing: '-0.03em' }}
-                      >
-                        {obsession.title}
-                      </h2>
-                      <span className="inline-flex items-center gap-3 border border-white/20 text-white text-[11px] font-medium tracking-[0.12em] uppercase px-6 py-3 hover:bg-white/[0.07] transition-colors duration-300">
-                        Réserver une place
-                        <span aria-hidden className="text-gold tracking-normal normal-case">→</span>
-                      </span>
+                      <div>
+                        <p className="text-[11px] font-medium tracking-[0.15em] uppercase text-white/55 mb-3 capitalize">
+                          {dateFmt} · {obsession.venue_name}
+                          {tier && ` · À partir de ${Math.round(tier.price_cents / 100)} €`}
+                        </p>
+                        <h2
+                          className="font-display font-light text-white mb-6 leading-none text-balance"
+                          style={{ fontSize: 'clamp(1.75rem, 4.5vw, 3.5rem)', letterSpacing: '-0.03em' }}
+                        >
+                          {obsession.title}
+                        </h2>
+                        <span className="inline-flex items-center gap-3 border border-white/20 text-white text-[11px] font-medium tracking-[0.12em] uppercase px-6 py-3 hover:bg-white/[0.07] transition-colors duration-300">
+                          Réserver une place
+                          <span aria-hidden className="text-gold tracking-normal normal-case">→</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            </ScrollReveal>
+                </Link>
+              </ScrollReveal>
+            </div>
           </section>
         )
       })()}
 
-      {/* ── EXPLORER ──────────────────────────────────────────────────── */}
-      <section className="px-4 pb-14 md:px-12 md:pb-20 max-w-5xl mx-auto">
-        <ScrollReveal className="mb-10">
-          <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-2">Explorer</p>
-          <h2
-            className="font-display font-light text-text text-balance"
-            style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
-          >
-            Soirées, lieux et prestataires à {city}
-          </h2>
-        </ScrollReveal>
+      {/* ════════════════════════════════════════
+          COMMENT ÇA MARCHE — bg-bg
+      ════════════════════════════════════════ */}
+      <section className="bg-bg px-4 py-16 md:px-12 md:py-28">
+        <div className="max-w-5xl mx-auto">
+          <ScrollReveal className="mb-16">
+            <h2
+              className="font-display font-light text-text text-balance"
+              style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
+            >
+              De 0 à ta meilleure soirée.
+            </h2>
+          </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {([
-            {
-              href: '/experiences',
-              category: 'Soirées',
-              title: exp > 0 ? `${exp} expérience${exp > 1 ? 's' : ''} disponible${exp > 1 ? 's' : ''}` : 'Bientôt disponibles',
-              cta: 'Trouver ma soirée',
-              image: '/explore-soirees.jpg',
-              alt: 'Table dressée aux bougies pour un dîner intime',
-            },
-            {
-              href: '/lieux',
-              category: 'Lieux',
-              title: lieux > 0 ? `${lieux} lieu${lieux > 1 ? 'x' : ''} partenaire${lieux > 1 ? 's' : ''}` : 'Lieux partenaires',
-              cta: 'Explorer les lieux',
-              image: '/explore-lieux.jpg',
-              alt: 'Patio méditerranéen avec plantes en pot au coucher du soleil',
-            },
-            {
-              href: '/fournisseurs',
-              category: 'Prestataires',
-              title: fournisseurs > 0 ? `${fournisseurs} prestataire${fournisseurs > 1 ? 's' : ''}` : 'DJ, traiteur, déco',
-              cta: 'Voir la marketplace',
-              image: '/explore-prestataires.jpg',
-              alt: 'Table de mixage éclairée en gros plan',
-            },
-          ] as const).map((card, i) => (
-            <ScrollReveal key={card.href} delay={i * 0.1}>
-              <Link href={card.href} className="block group">
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-border/30 mb-4">
-                  <Image
-                    src={card.image}
-                    alt={card.alt}
-                    fill
-                    sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 40px), 300px"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                  />
+          <div className="flex flex-col">
+            {HOW_IT_WORKS.map(({ step, title, desc }, i) => (
+              <ScrollReveal key={step} delay={i * 0.1}>
+                <div className="flex items-start gap-6 md:gap-12">
+                  <div className="flex flex-col items-center shrink-0">
+                    <span
+                      aria-hidden
+                      className="font-display font-bold select-none"
+                      style={{
+                        fontSize: 'clamp(5rem, 12vw, 10rem)',
+                        lineHeight: 0.88,
+                        letterSpacing: '-0.04em',
+                        WebkitTextStroke: '1.5px rgb(var(--color-border-rgb))',
+                        color: 'transparent',
+                        display: 'block',
+                      } as React.CSSProperties}
+                    >
+                      {i + 1}
+                    </span>
+                    {i < HOW_IT_WORKS.length - 1 && (
+                      <div className="w-px h-12 bg-border mt-3" />
+                    )}
+                  </div>
+                  <div className="pt-2 pb-12 md:pb-16">
+                    <p className="text-gold text-[10px] font-medium tracking-[0.2em] uppercase mb-2">{step}</p>
+                    <h3
+                      className="font-display font-medium text-text mb-3"
+                      style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)', letterSpacing: '-0.02em' }}
+                    >
+                      {title}
+                    </h3>
+                    <p className="text-text-muted text-sm leading-relaxed max-w-xs md:max-w-sm">{desc}</p>
+                  </div>
                 </div>
-                <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text-muted mb-2">
-                  {card.category}
-                </p>
-                <p
-                  className="font-display font-medium text-text mb-1 group-hover:text-primary transition-colors duration-200"
-                  style={{ letterSpacing: '-0.01em' }}
-                >
-                  {card.title}
-                </p>
-                <p className="text-[11px] tracking-[0.08em] uppercase text-text-muted group-hover:text-primary transition-colors duration-200 mt-3">
-                  {card.cta} →
-                </p>
-              </Link>
-            </ScrollReveal>
-          ))}
+              </ScrollReveal>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── TIER S ────────────────────────────────────────────────────── */}
+      {/* ════════════════════════════════════════
+          EXPLORER — bg-bg, catalogue éditorial
+      ════════════════════════════════════════ */}
+      <section className="bg-bg px-4 pb-16 md:px-12 md:pb-24">
+        <div className="max-w-5xl mx-auto">
+          <ScrollReveal className="mb-10">
+            <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-2">Explorer</p>
+            <h2
+              className="font-display font-light text-text text-balance"
+              style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
+            >
+              Soirées, lieux et prestataires à {city}
+            </h2>
+          </ScrollReveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {([
+              {
+                href: '/experiences',
+                category: 'Soirées',
+                title: exp > 0 ? `${exp} expérience${exp > 1 ? 's' : ''} disponible${exp > 1 ? 's' : ''}` : 'Bientôt disponibles',
+                cta: 'Trouver ma soirée',
+                image: '/explore-soirees.jpg',
+                alt: 'Table dressée aux bougies pour un dîner intime',
+              },
+              {
+                href: '/lieux',
+                category: 'Lieux',
+                title: lieux > 0 ? `${lieux} lieu${lieux > 1 ? 'x' : ''} partenaire${lieux > 1 ? 's' : ''}` : 'Lieux partenaires',
+                cta: 'Explorer les lieux',
+                image: '/explore-lieux.jpg',
+                alt: 'Patio méditerranéen avec plantes en pot au coucher du soleil',
+              },
+              {
+                href: '/fournisseurs',
+                category: 'Prestataires',
+                title: fournisseurs > 0 ? `${fournisseurs} prestataire${fournisseurs > 1 ? 's' : ''}` : 'DJ, traiteur, déco',
+                cta: 'Voir la marketplace',
+                image: '/explore-prestataires.jpg',
+                alt: 'Table de mixage éclairée en gros plan',
+              },
+            ] as const).map((card, i) => (
+              <ScrollReveal key={card.href} delay={i * 0.1}>
+                <Link href={card.href} className="block group">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-border/30 mb-4">
+                    <Image
+                      src={card.image}
+                      alt={card.alt}
+                      fill
+                      sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1024px) calc(50vw - 40px), 300px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    />
+                  </div>
+                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text-muted mb-2">
+                    {card.category}
+                  </p>
+                  <p
+                    className="font-display font-medium text-text mb-1 group-hover:text-gold transition-colors duration-200"
+                    style={{ letterSpacing: '-0.01em' }}
+                  >
+                    {card.title}
+                  </p>
+                  <p className="text-[11px] tracking-[0.08em] uppercase text-text-muted group-hover:text-gold transition-colors duration-200 mt-3">
+                    {card.cta} →
+                  </p>
+                </Link>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════
+          TIER S — bg-canvas, mise en scène
+      ════════════════════════════════════════ */}
       {tierSExps.length > 0 && (() => {
         return (
-          <section className="px-4 py-14 md:px-12 md:py-20 border-y border-border">
+          <section className="bg-canvas px-4 py-14 md:px-12 md:py-20">
             <div className="max-w-5xl mx-auto">
               <ScrollReveal className="mb-8 flex items-end justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-2">
+                  <p className="text-gold text-[10px] font-medium tracking-[0.4em] uppercase mb-2">
                     Classement · Tier S
                   </p>
                   <h2
-                    className="font-display font-light text-text text-balance"
+                    className="font-display font-light text-white text-balance"
                     style={{ fontSize: 'clamp(1.5rem, 3.5vw, 2.5rem)', letterSpacing: '-0.03em' }}
                   >
                     Les meilleures soirées à {city}
@@ -316,7 +377,7 @@ export default async function HomePage() {
                 </div>
                 <Link
                   href="/tier-list"
-                  className="text-[11px] tracking-[0.08em] uppercase text-text-muted hover:text-text transition-colors duration-200 shrink-0 hidden sm:inline-flex sm:items-center py-2"
+                  className="text-[11px] tracking-[0.08em] uppercase text-white/50 hover:text-white/80 transition-colors duration-200 shrink-0 hidden sm:inline-flex sm:items-center py-2"
                 >
                   Classement complet →
                 </Link>
@@ -338,16 +399,16 @@ export default async function HomePage() {
                           />
                         </div>
                         <p
-                          className="font-display font-medium text-text text-sm group-hover:text-primary transition-colors duration-200 mb-1 line-clamp-2"
+                          className="font-display font-medium text-white text-sm group-hover:text-white/70 transition-colors duration-200 mb-1 line-clamp-2"
                           style={{ letterSpacing: '-0.01em' }}
                         >
                           {exp.title}
                         </p>
-                        <p className="text-text-muted text-xs">
+                        <p className="text-white/50 text-xs">
                           {new Date(exp.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · {exp.venue_name}
                         </p>
                         {tier && (
-                          <p className="mt-1.5 text-xs text-text-muted">
+                          <p className="mt-1.5 text-xs text-gold">
                             {Math.round(tier.price_cents / 100)} €
                           </p>
                         )}
@@ -361,60 +422,9 @@ export default async function HomePage() {
         )
       })()}
 
-      {/* ── COMMENT ÇA MARCHE ─────────────────────────────────────────── */}
-      <section className="px-4 py-16 md:px-12 md:py-28 max-w-5xl mx-auto">
-        <ScrollReveal className="mb-16">
-          <h2
-            className="font-display font-light text-text text-balance"
-            style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
-          >
-            De 0 à ta meilleure soirée.
-          </h2>
-        </ScrollReveal>
-
-        <div className="flex flex-col">
-          {HOW_IT_WORKS.map(({ step, title, desc }, i) => (
-            <ScrollReveal key={step} delay={i * 0.1}>
-              <div className="flex items-start gap-6 md:gap-12">
-                {/* Outline number */}
-                <div className="flex flex-col items-center shrink-0">
-                  <span
-                    aria-hidden
-                    className="font-display font-bold select-none"
-                    style={{
-                      fontSize: 'clamp(5rem, 12vw, 10rem)',
-                      lineHeight: 0.88,
-                      letterSpacing: '-0.04em',
-                      WebkitTextStroke: '1.5px rgb(var(--color-border-rgb))',
-                      color: 'transparent',
-                      display: 'block',
-                    }}
-                  >
-                    {i + 1}
-                  </span>
-                  {i < HOW_IT_WORKS.length - 1 && (
-                    <div className="w-px h-12 bg-border mt-3" />
-                  )}
-                </div>
-
-                {/* Text */}
-                <div className="pt-2 pb-12 md:pb-16">
-                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-primary mb-2">{step}</p>
-                  <h3
-                    className="font-display font-medium text-text mb-3"
-                    style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)', letterSpacing: '-0.02em' }}
-                  >
-                    {title}
-                  </h3>
-                  <p className="text-text-muted text-sm leading-relaxed max-w-xs md:max-w-sm">{desc}</p>
-                </div>
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ── LES 3 ACTES ───────────────────────────────────────────────── */}
+      {/* ════════════════════════════════════════
+          LES 3 ACTES — bg-canvas (continue)
+      ════════════════════════════════════════ */}
       <section className="bg-canvas px-4 py-20 md:px-12 md:py-28">
         <div className="max-w-5xl mx-auto">
           <ScrollReveal className="mb-14">
@@ -448,10 +458,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── PARTENAIRES PRO ───────────────────────────────────────────── */}
-      <section className="px-4 py-16 md:px-12 md:py-24 border-b border-border">
+      {/* ════════════════════════════════════════
+          PARTENAIRES PRO — bg-bg
+      ════════════════════════════════════════ */}
+      <section className="bg-bg px-4 py-16 md:px-12 md:py-24">
         <div className="max-w-5xl mx-auto">
           <ScrollReveal className="mb-10">
+            <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-2">Partenaires</p>
             <h2
               className="font-display font-light text-text text-balance"
               style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', letterSpacing: '-0.03em' }}
@@ -469,7 +482,7 @@ export default async function HomePage() {
                 >
                   <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text-muted mb-5">{card.role}</p>
                   <p className="text-text-muted text-sm leading-relaxed flex-1 mb-6">{card.desc}</p>
-                  <p className="text-[11px] tracking-[0.08em] uppercase text-text group-hover:text-primary transition-colors duration-200">
+                  <p className="text-[11px] tracking-[0.08em] uppercase text-text group-hover:text-gold transition-colors duration-200">
                     {card.label} →
                   </p>
                 </Link>
@@ -479,24 +492,28 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── POUR QUI ──────────────────────────────────────────────────── */}
-      <section className="px-6 py-16 md:px-16 md:py-24 border-b border-border">
+      {/* ════════════════════════════════════════
+          POUR QUI — bg-canvas, pull quote
+      ════════════════════════════════════════ */}
+      <section className="bg-canvas px-6 py-20 md:px-16 md:py-28">
         <div className="max-w-3xl">
           <ScrollReveal>
             <blockquote
-              className="font-display font-light text-text leading-[1.2]"
+              className="font-display font-light text-white leading-[1.2] text-balance"
               style={{ fontSize: 'clamp(1.35rem, 3.5vw, 2.25rem)', letterSpacing: '-0.025em' }}
             >
               Pour celles et ceux qui veulent{' '}
-              <span className="text-primary">vraiment rencontrer du monde</span>
+              <span className="text-gold">vraiment rencontrer du monde</span>
               {' '}— sans subir la soirée.
             </blockquote>
           </ScrollReveal>
         </div>
       </section>
 
-      {/* ── CTA FINAL + WAITLIST ──────────────────────────────────────── */}
-      <section className="px-6 py-20 md:px-16 md:py-28">
+      {/* ════════════════════════════════════════
+          CTA FINAL + WAITLIST — bg-bg
+      ════════════════════════════════════════ */}
+      <section className="bg-bg px-6 py-20 md:px-16 md:py-28">
         <div className="max-w-xl">
           <ScrollReveal>
             <p className="text-[10px] font-medium tracking-[0.28em] uppercase text-text-muted mb-4">
@@ -516,7 +533,7 @@ export default async function HomePage() {
               className="inline-flex items-center gap-3 border border-text/20 text-text text-[11px] font-medium tracking-[0.12em] uppercase px-8 py-4 hover:bg-text/[0.04] focus-visible:outline-none focus-visible:border-text/60 transition-colors duration-300 mb-14"
             >
               Découvrir mon profil
-              <span aria-hidden className="tracking-normal text-primary">→</span>
+              <span aria-hidden className="tracking-normal text-gold">→</span>
             </Link>
 
             <div className="border-t border-border pt-8">
@@ -529,30 +546,33 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── FOOTER ────────────────────────────────────────────────────── */}
-      <footer className="border-t border-border">
+      {/* ════════════════════════════════════════
+          FOOTER — bg-canvas, fermeture cinématique
+      ════════════════════════════════════════ */}
+      <footer className="bg-canvas border-t border-white/10">
         <div className="max-w-5xl mx-auto px-6 py-14 md:py-20 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <Link
                 href="/"
-                className="font-display font-medium text-text block mb-3"
+                className="font-display font-medium text-white block mb-3"
                 style={{ letterSpacing: '-0.02em' }}
               >
                 Soirée Villa
               </Link>
-              <p className="text-[10px] tracking-[0.2em] uppercase text-text-muted mb-1">
+              <p className="text-[10px] tracking-[0.2em] uppercase text-white/40 mb-1">
                 Comprendre · Vivre · Oser
               </p>
-              <p className="text-[10px] tracking-[0.1em] uppercase text-text-muted/60">
+              <p className="text-[10px] tracking-[0.1em] uppercase text-white/25">
                 Nice — 2026
               </p>
             </div>
 
             {/* Explorer */}
             <div>
-              <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text mb-5">Explorer</p>
+              <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/50 mb-5">Explorer</p>
               <ul className="flex flex-col gap-3">
                 {[
                   { href: '/experiences', label: 'Soirées' },
@@ -562,7 +582,7 @@ export default async function HomePage() {
                   { href: '/marketplace', label: 'Marketplace' },
                 ].map(l => (
                   <li key={l.href}>
-                    <Link href={l.href} className="block py-1 text-text-muted text-xs hover:text-text transition-colors duration-200">
+                    <Link href={l.href} className="block py-1 text-white/40 text-xs hover:text-white/70 transition-colors duration-200">
                       {l.label}
                     </Link>
                   </li>
@@ -572,7 +592,7 @@ export default async function HomePage() {
 
             {/* Pro */}
             <div>
-              <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text mb-5">Pro</p>
+              <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/50 mb-5">Pro</p>
               <ul className="flex flex-col gap-3">
                 {[
                   { href: '/organisateur/inscription', label: 'Organisateur' },
@@ -581,7 +601,7 @@ export default async function HomePage() {
                   { href: '/marketplace', label: 'Marketplace' },
                 ].map(l => (
                   <li key={l.href}>
-                    <Link href={l.href} className="block py-1 text-text-muted text-xs hover:text-text transition-colors duration-200">
+                    <Link href={l.href} className="block py-1 text-white/40 text-xs hover:text-white/70 transition-colors duration-200">
                       {l.label}
                     </Link>
                   </li>
@@ -591,7 +611,7 @@ export default async function HomePage() {
 
             {/* Légal */}
             <div>
-              <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-text mb-5">Légal</p>
+              <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/50 mb-5">Légal</p>
               <ul className="flex flex-col gap-3">
                 {[
                   { href: '/charte-participant', label: 'Charte participant' },
@@ -600,24 +620,25 @@ export default async function HomePage() {
                   { href: '/contact', label: 'Contact' },
                 ].map(l => (
                   <li key={l.href}>
-                    <Link href={l.href} className="block py-1 text-text-muted text-xs hover:text-text transition-colors duration-200">
+                    <Link href={l.href} className="block py-1 text-white/40 text-xs hover:text-white/70 transition-colors duration-200">
                       {l.label}
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
+
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-8 border-t border-border">
-            <p className="text-text-muted text-[10px] tracking-[0.1em]">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-8 border-t border-white/10">
+            <p className="text-white/30 text-[10px] tracking-[0.1em]">
               © 2026 Soirée Villa — Tous droits réservés
             </p>
             <a
               href="https://instagram.com/soireevilla"
               target="_blank"
               rel="noopener noreferrer"
-              className="py-2 text-text-muted text-[10px] tracking-[0.1em] hover:text-text transition-colors duration-200"
+              className="py-2 text-white/30 text-[10px] tracking-[0.1em] hover:text-white/60 transition-colors duration-200"
             >
               Instagram →
             </a>
